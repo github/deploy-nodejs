@@ -1,3 +1,7 @@
+###############################################
+# Dockerfile to run AWS Serverless NodeJS App #
+###############################################
+
 # Get Ubuntu 18.04 base image
 FROM ubuntu:18.04
 
