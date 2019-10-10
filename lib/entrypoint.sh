@@ -42,6 +42,8 @@ USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"           # File wit
 START_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')  # YYYY-MM-DDTHH:MM:SSZ
 FINISHED_DATE=''        # YYYY-MM-DDTHH:MM:SSZ when complete
 ACTION_CONCLUSTION=''   # success, failure, neutral, cancelled, timed_out, or action_required.
+ERROR_FOUND=0           # Set to 1 if any errors occur in the build before the package and deploy
+ERROR_CAUSE=''          # String to pass of error that was detected
 
 ################
 # Default Vars #
@@ -76,7 +78,11 @@ ValidateConfigurationFile()
   if [ ! -f "$USER_CONFIG_FILE" ]; then
     # User file not found
     echo "ERROR! Failed to find configuration file in user repository!"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to find configuration file in user repository!'
   fi
 
   ########################################
@@ -101,7 +107,11 @@ ValidateConfigurationFile()
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_ACCESS_KEY_ID" == "null" ]; then
     echo "ERROR! Failed to get aws_access_key_id!"
     echo "ERROR:[$AWS_ACCESS_KEY_ID]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to get aws_access_key_id"
   fi
 
   ############################################
@@ -128,7 +138,11 @@ ValidateConfigurationFile()
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_SECRET_ACCESS_KEY" == "null" ]; then
     echo "ERROR! Failed to get aws_secret_access_key!"
     echo "ERROR:[$AWS_SECRET_ACCESS_KEY]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get aws_secret_access_key!'
   fi
 
   ############################################
@@ -155,7 +169,11 @@ ValidateConfigurationFile()
   if [ $ERROR_CODE -ne 0 ] || [ "$S3_BUCKET" == "null" ]; then
     echo "ERROR! Failed to get s3_bucket!"
     echo "ERROR:[$S3_BUCKET]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get s3_bucket!'
   fi
 
   ############################################
@@ -182,7 +200,11 @@ ValidateConfigurationFile()
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_STACK_NAME" == "null" ]; then
     echo "ERROR! Failed to get aws_stack_name!"
     echo "ERROR:[$AWS_STACK_NAME]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get aws_stack_name!'
   fi
 
   ############################################
@@ -209,7 +231,11 @@ ValidateConfigurationFile()
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_CAPABILITIES_IAM" == "null" ]; then
     echo "ERROR! Failed to get aws_capability_iam!"
     echo "ERROR:[$AWS_CAPABILITIES_IAM]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get aws_capability_iam!'
   fi
 
   ############################################
@@ -294,9 +320,13 @@ CreateLocalConfiguration()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! failed to create root directory!"
+    echo "ERROR! Failed to create root directory!"
     echo "ERROR:[$MK_DIR_CMD]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to create root directory!'
   fi
 
   ############################################
@@ -313,9 +343,13 @@ CreateLocalConfiguration()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! failed to create file:[$LOCAL_CRED_FILE]!"
+    echo "ERROR! Failed to create file:[$LOCAL_CRED_FILE]!"
     echo "ERROR:[$CREATE_CREDS_CMD]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to create file:[$LOCAL_CRED_FILE]!"
   fi
 
   #######################################
@@ -332,9 +366,13 @@ CreateLocalConfiguration()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! failed to create file:[$LOCAL_CONFIG_FILE]!"
+    echo "ERROR! Failed to create file:[$LOCAL_CONFIG_FILE]!"
     echo "ERROR:[$CREATE_CONFIG_CMD]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to create file:[$LOCAL_CONFIG_FILE]!"
   fi
 }
 ################################################################################
@@ -347,7 +385,11 @@ GetGitHubVars()
   if [ -z "$GITHUB_SHA" ]; then
     echo "ERROR! Failed to get GITHUB_SHA!"
     echo "ERROR:[$GITHUB_SHA]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_SHA!'
   fi
 
   ############################
@@ -356,7 +398,11 @@ GetGitHubVars()
   if [ -z "$GITHUB_TOKEN" ]; then
     echo "ERROR! Failed to get GITHUB_TOKEN!"
     echo "ERROR:[$GITHUB_TOKEN]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_TOKEN!'
   fi
 
   ############################
@@ -365,7 +411,11 @@ GetGitHubVars()
   if [ -z "$GITHUB_WORKSPACE" ]; then
     echo "ERROR! Failed to get GITHUB_WORKSPACE!"
     echo "ERROR:[$GITHUB_WORKSPACE]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_WORKSPACE!'
   fi
 
   ############################
@@ -374,7 +424,11 @@ GetGitHubVars()
   if [ -z "$GITHUB_EVENT_PATH" ]; then
     echo "ERROR! Failed to get GITHUB_EVENT_PATH!"
     echo "ERROR:[$GITHUB_EVENT_PATH]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_EVENT_PATH!'
   fi
 
   ##################################################
@@ -391,9 +445,13 @@ GetGitHubVars()
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_ORG" ]; then
-    echo "ERROR! Failed to get GitHub Org!"
+    echo "ERROR! Failed to get GITHUB_ORG!"
     echo "ERROR:[$GITHUB_ORG]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_ORG!'
   fi
 
   #######################
@@ -408,18 +466,12 @@ GetGitHubVars()
   if [ -z "$GITHUB_REPO" ]; then
     echo "ERROR! Failed to get GITHUB_REPO!"
     echo "ERROR:[$GITHUB_REPO]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to get GITHUB_REPO!'
   fi
-
-  ############################
-  # Validate we have a value #
-  ############################
-  if [ -z "$GITHUB_ORG" ]; then
-    echo "ERROR! Failed to get GITHUB_ORG!"
-    echo "ERROR:[$GITHUB_ORG]"
-    exit 1
-  fi
-
 }
 ################################################################################
 #### Function ValidateAWSCLI ###################################################
@@ -428,7 +480,7 @@ ValidateAWSCLI()
   ##########################################
   # Validate we have access to the aws cli #
   ##########################################
-  VALIDATE_CMD=$(which aws 2>&1)
+  VALIDATE_AWS_CMD=$(which aws 2>&1)
 
   #######################
   # Load the error code #
@@ -441,8 +493,36 @@ ValidateAWSCLI()
   if [ $ERROR_CODE -ne 0 ]; then
     # Error failed to find binary
     echo "ERROR! Failed to find aws cli!"
-    echo "ERROR:[$VALIDATE_CMD]"
-    exit 1
+    echo "ERROR:[$VALIDATE_AWS_CMD]"
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to find aws cli!'
+  fi
+
+  ##########################################
+  # Validate we have access to the aws cli #
+  ##########################################
+  VALIDATE_SAM_CMD=$(which sam 2>&1)
+
+  #######################
+  # Load the error code #
+  #######################
+  ERROR_CODE=$?
+
+  ##############################
+  # Check the shell for errors #
+  ##############################
+  if [ $ERROR_CODE -ne 0 ]; then
+    # Error failed to find binary
+    echo "ERROR! Failed to find aws sam cli!"
+    echo "ERROR:[$VALIDATE_SAM_CMD]"
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to find aws sam cli!'
   fi
 }
 ################################################################################
@@ -515,8 +595,12 @@ PackageTemplate()
   # Check the source code for the SAM template #
   ##############################################
   if [ ! -f "$GITHUB_WORKSPACE/sam.yaml" ]; then
-    echo "ERROR! failed to find:[sam.yml] in root of repository!"
-    exit 1
+    echo "ERROR! Failed to find:[sam.yml] in root of repository!"
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to find:[sam.yml] in root of repository!'
   fi
 
   #####################################
@@ -533,9 +617,13 @@ PackageTemplate()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! failed to access AWS S3 bucket:[$S3_BUCKET]"
+    echo "ERROR! Failed to access AWS S3 bucket:[$S3_BUCKET]"
     echo "ERROR:[$CHECK_BUCKET_CMD]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to access AWS S3 bucket:[$S3_BUCKET]"
   fi
 
   ############################
@@ -575,7 +663,11 @@ DeployTemplate()
   ############################################
   if [ ! -f "$GITHUB_WORKSPACE/packaged.yml" ]; then
     echo "ERROR! Failed to find created package:[packaged.yml]"
-    exit 1
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to find created package:[packaged.yml]'
   fi
 
   ###########################
