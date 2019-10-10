@@ -48,8 +48,8 @@ ACTION_CONCLUSTION=''   # success, failure, neutral, cancelled, timed_out, or ac
 ################
 DEFAULT_OUTPUT='json'                     # Default Output format
 DEFAULT_REGION='us-west-2'                # Default region to deploy
-LOCAL_CONFIG_FILE='~/.aws/config'         # AWS Config file
-LOCAL_CRED_FILE='~/.aws/credentials'      # AWS Credential file
+LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
+LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -245,7 +245,7 @@ ValidateConfigurationFile()
   # Clean any whitespace that may be entered #
   ############################################
   AWS_REGION_NO_WHITESPACE="$(echo "${AWS_REGION}" | tr -d '[:space:]')"
-  AWS_REGION=$AWS_REGION_ID_NO_WHITESPACE
+  AWS_REGION=$AWS_REGION_NO_WHITESPACE
 
   ####################
   ####################
@@ -274,7 +274,7 @@ ValidateConfigurationFile()
   # Clean any whitespace that may be entered #
   ############################################
   AWS_OUTPUT_NO_WHITESPACE="$(echo "${AWS_OUTPUT}" | tr -d '[:space:]')"
-  AWS_OUTPUT=$AWS_OUTPUT_ID_NO_WHITESPACE
+  AWS_OUTPUT=$AWS_OUTPUT_NO_WHITESPACE
 }
 ################################################################################
 #### Function CreateLocalConfiguration #########################################
@@ -332,7 +332,7 @@ CreateLocalConfiguration()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! failed to create file:[$LOCAL_CONFIG_FILEg]!"
+    echo "ERROR! failed to create file:[$LOCAL_CONFIG_FILE]!"
     echo "ERROR:[$CREATE_CONFIG_CMD]"
     exit 1
   fi
@@ -384,6 +384,7 @@ GetGitHubVars()
   ######################
   # Get the GitHub Org #
   ######################
+  # shellcheck disable=SC2002
   GITHUB_ORG=$(cat "$GITHUB_EVENT_PATH" | jq -r '.repository.owner.login' 2>&1)
 
   ############################
@@ -398,6 +399,7 @@ GetGitHubVars()
   #######################
   # Get the GitHub Repo #
   #######################
+  # shellcheck disable=SC2002
   GITHUB_REPO=$(cat "$GITHUB_EVENT_PATH"| jq -r '.repository.name' 2>&1)
 
   ############################
@@ -520,7 +522,7 @@ PackageTemplate()
   #####################################
   # Validate we can see AWS s3 bucket #
   #####################################
-  CHECK_BUCKET_CMD=$(aws s3 ls $S3_BUCKET 2>&1)
+  CHECK_BUCKET_CMD=$(aws s3 ls "$S3_BUCKET" 2>&1)
 
   #######################
   # Load the error code #
