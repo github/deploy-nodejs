@@ -680,4 +680,4 @@ UpdateCheck
 #######################################
 # This is used to keep the agent alive indefinitely
 # as we test the docker container and the action
-tail -f /dev/null
+#tail -f /dev/null

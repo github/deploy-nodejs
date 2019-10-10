@@ -28,6 +28,8 @@ aws_stack_name: mystack
 # AWS Capability IAM #
 ######################
 # NOTE: This needs the capabilities to build and deploy your SAM
+# Minimal rules:
+# ???
 aws_capability_iam:
 
 ###########################################
