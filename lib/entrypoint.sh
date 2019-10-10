@@ -42,6 +42,7 @@ USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"           # File wit
 START_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')  # YYYY-MM-DDTHH:MM:SSZ
 FINISHED_DATE=''        # YYYY-MM-DDTHH:MM:SSZ when complete
 ACTION_CONCLUSTION=''   # success, failure, neutral, cancelled, timed_out, or action_required.
+ACTION_OUTPUT=''        # String to pass back to the user on the output
 ERROR_FOUND=0           # Set to 1 if any errors occur in the build before the package and deploy
 ERROR_CAUSE=''          # String to pass of error that was detected
 
@@ -646,12 +647,8 @@ PackageTemplate()
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
-    ACTION_CONCLUSTION='failure'
-  else
-    #########################################
-    # Need to update the ACTION_CONCLUSTION #
-    #########################################
-    ACTION_CONCLUSTION='success'
+    ERROR_FOUND=1
+    ERROR_CAUSE='Failed to package SAM template!'
   fi
 }
 ################################################################################
@@ -691,12 +688,14 @@ DeployTemplate()
     # Need to update the ACTION_CONCLUSTION #
     #########################################
     ACTION_CONCLUSTION='failure'
+    ACTION_OUTPUT="Failed to deploy SAM App"
   else
     # Success
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
     ACTION_CONCLUSTION='success'
+    ACTION_OUTPUT="Successfully Deployed SAM App"
   fi
 }
 ################################################################################
@@ -708,6 +707,16 @@ UpdateCheck()
   ###########################
   FINISHED_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')
 
+  ######################################################
+  # Set the conclusion to failure if errors were found #
+  ######################################################
+  if [ $ERROR_FOUND -ne 0 ]; then
+    # Set conclusion
+    $ACTION_CONCLUSTION='failure'
+    # Set the output
+    ACTION_OUTPUT="$ERROR_CAUSE"
+  fi
+
   ##########################################
   # Call to Github to update the Check API #
   ##########################################
@@ -716,7 +725,7 @@ UpdateCheck()
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
     -H 'content-type: application/json' \
-    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"completed\", \"completed_at\": \"$FINISHED_DATE\" , \"conclusion\": \"$ACTION_CONCLUSTION\" }" \
+    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"completed\", \"completed_at\": \"$FINISHED_DATE\" , \"conclusion\": \"$ACTION_CONCLUSTION\" , \"output\": { \"title\": \"AWS SAM Deploy Summary\" , \"text\": \"$ACTION_OUTPUT\"} }" \
     2>&1)
 
   #######################
@@ -737,33 +746,45 @@ UpdateCheck()
 ################################# MAIN #########################################
 ################################################################################
 
-####################
-# Validate AWS CLI #
-####################
-# Need to validate we have the aws cli installed
-# And avilable for usage
-ValidateAWSCLI
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  ####################
+  # Validate AWS CLI #
+  ####################
+  # Need to validate we have the aws cli installed
+  # And avilable for usage
+  ValidateAWSCLI
+fi
 
-#######################
-# Get Github Env Vars #
-#######################
-# Need to pull in all the Github variables
-# needed to connect back and update checks
-GetGitHubVars
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  #######################
+  # Get Github Env Vars #
+  #######################
+  # Need to pull in all the Github variables
+  # needed to connect back and update checks
+  GetGitHubVars
+fi
 
-#######################################
-# Validate We have configuration file #
-#######################################
-# Look for the users configuration file to
-# connect to AWS and start the Serverless app
-ValidateConfigurationFile
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  #######################################
+  # Validate We have configuration file #
+  #######################################
+  # Look for the users configuration file to
+  # connect to AWS and start the Serverless app
+  ValidateConfigurationFile
+fi
 
-###################################
-# Create local configuration file #
-###################################
-# Create the local configuration file used
-# to connect to AWS and deploy the Serverless app
-CreateLocalConfiguration
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  ###################################
+  # Create local configuration file #
+  ###################################
+  # Create the local configuration file used
+  # to connect to AWS and deploy the Serverless app
+  CreateLocalConfiguration
+fi
 
 ################
 # Create Check #
@@ -772,12 +793,15 @@ CreateLocalConfiguration
 # user know we are running the deploy action
 CreateCheck
 
-##############
-# Run Deploy #
-##############
-# Run the actual deployment of the NodeJS
-# to AWS Serverless
-RunDeploy
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  ##############
+  # Run Deploy #
+  ##############
+  # Run the actual deployment of the NodeJS
+  # to AWS Serverless
+  RunDeploy
+fi
 
 ################
 # Update Check #
@@ -785,10 +809,3 @@ RunDeploy
 # Update the check with the status
 # of the deployment
 UpdateCheck
-
-#######################################
-# DEBUG tail to keep instance running #
-#######################################
-# This is used to keep the agent alive indefinitely
-# as we test the docker container and the action
-#tail -f /dev/null
