@@ -268,9 +268,11 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_REGION" == "null" ]; then
+    # Error
     echo "ERROR! Failed to get region!"
     echo "ERROR:[$AWS_REGION]"
   else
+    # Fall back to default
     echo "No value provided... Defaulting to:[$DEFAULT_REGION]"
     AWS_REGION="$DEFAULT_REGION"
   fi
@@ -297,9 +299,11 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_OUTPUT" == "null" ]; then
+    # Error
     echo "ERROR! Failed to get output!"
     echo "ERROR:[$AWS_OUTPUT]"
   else
+    # Fall back to default
     echo "No value provided... Defaulting to:[$DEFAULT_OUTPUT]"
     AWS_OUTPUT="$DEFAULT_OUTPUT"
   fi
@@ -798,6 +802,7 @@ fi
 ################
 # Create the check in GitHub to let the
 # user know we are running the deploy action
+# We always want to inform user of the process
 CreateCheck
 
 # Go into loop if no errors detected
@@ -815,4 +820,5 @@ fi
 ################
 # Update the check with the status
 # of the deployment
+# We always want to inform user of the process
 UpdateCheck
