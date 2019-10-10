@@ -553,7 +553,15 @@ PackageTemplate()
     # Errors found
     echo "ERROR! Failed to package SAM template!"
     echo "ERROR:[$SAM_PACKAGE_CMD]"
-    exit 1
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ACTION_CONCLUSTION='failure'
+  else
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ACTION_CONCLUSTION='success'
   fi
 }
 ################################################################################
@@ -585,7 +593,16 @@ DeployTemplate()
     # Errors found
     echo "ERROR! Failed to deploy SAM template!"
     echo "ERROR:[$SAM_DEPLOY_CMD]"
-    exit 1
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ACTION_CONCLUSTION='failure'
+  else
+    # Success
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ACTION_CONCLUSTION='success'
   fi
 }
 ################################################################################
@@ -620,7 +637,7 @@ UpdateCheck()
     echo "ERROR! Failed to update GitHub Check!"
     echo "ERROR:[$UPDATE_CHECK_CMD]"
     exit 1
-  else
+  fi
 }
 ################################################################################
 ################################# MAIN #########################################
