@@ -8,13 +8,19 @@ FROM ubuntu:18.04
 # Run the Update
 RUN apt-get update && apt-get upgrade -y
 
-# Install pre-reqs
-RUN apt-get install -y python curl openssh-server
+# Add lib to setup additional libs
+RUN apt-get install -y software-properties-common
 
-# Setup sshd
-# RUN mkdir -p /var/run/sshd
-# RUN echo 'root:password' | chpasswd
-# RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+# Run and get repository
+RUN add-apt-repository ppa:rmescandon/yq
+
+# Run the Update
+RUN apt-get update
+
+# Install pre-reqs
+RUN apt-get install -y \
+    && python curl yq jq
+    && build-essential curl file git
 
 # download and install pip
 RUN curl -sO https://bootstrap.pypa.io/get-pip.py
@@ -25,6 +31,17 @@ RUN pip install awscli
 
 # Setup AWS CLI Command Completion
 RUN echo complete -C '/usr/local/bin/aws_completer' aws >> ~/.bashrc
+
+# Setup AWS SAM CLI
+# Have to install a bit oddly as you cant install normally from docker
+RUN git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew \
+    && mkdir ~/.linuxbrew/bin \
+    && ln -s ~/.linuxbrew/Homebrew/bin/brew ~/.linuxbrew/bin \
+    && eval $(~/.linuxbrew/bin/brew shellenv)
+
+# Install AWS SAM CLI
+RUN /root/.linuxbrew/Homebrew/bin/brew tap aws/tap \
+    && /root/.linuxbrew/Homebrew/bin/brew install aws-sam-cli
 
 # Label the instance
 LABEL com.github.actions.name="NodeJS Deploy AWS Serverless"
@@ -39,4 +56,7 @@ LABEL maintainer="GitHub DevOps <github_devops@github.com>"
 COPY lib /action/lib
 
 # Set the entrypoint
-ENTRYPOINT ["/action/lib/entrypoint.sh"]
+#ENTRYPOINT ["/action/lib/entrypoint.sh"]
+
+# Enable for DEBUG to keep agent alive
+CMD tail -f /dev/null
