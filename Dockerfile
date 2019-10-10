@@ -19,7 +19,7 @@ RUN apt-get update
 
 # Install pre-reqs
 RUN apt-get install -y \
-    && python curl yq jq
+    && python curl yq jq locales
     && build-essential curl file git
 
 # download and install pip
@@ -33,6 +33,8 @@ RUN pip install awscli
 RUN echo complete -C '/usr/local/bin/aws_completer' aws >> ~/.bashrc
 
 # Setup AWS SAM CLI
+# - https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install-linux.html
+# - https://github.com/Linuxbrew/brew
 # Have to install a bit oddly as you cant install normally from docker
 RUN git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew \
     && mkdir ~/.linuxbrew/bin \
@@ -40,7 +42,8 @@ RUN git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew \
     && eval $(~/.linuxbrew/bin/brew shellenv)
 
 # Install AWS SAM CLI
-RUN /root/.linuxbrew/Homebrew/bin/brew tap aws/tap \
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8 \
+    && /root/.linuxbrew/Homebrew/bin/brew tap aws/tap \
     && /root/.linuxbrew/Homebrew/bin/brew install aws-sam-cli
 
 # Label the instance

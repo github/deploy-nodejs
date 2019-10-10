@@ -6,6 +6,13 @@
 ################################################################################
 ################################################################################
 
+#########
+# NOTE: #
+#########
+# - https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-deploying.html
+# - https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-where
+# - https://developer.github.com/v3/checks/runs/
+
 #####################
 # Set exit on ERROR #
 #####################
