@@ -723,7 +723,7 @@ UpdateCheck()
   ######################################################
   if [ $ERROR_FOUND -ne 0 ]; then
     # Set conclusion
-    $ACTION_CONCLUSTION='failure'
+    ACTION_CONCLUSTION='failure'
     # Set the output
     ACTION_OUTPUT="$ERROR_CAUSE"
   fi
