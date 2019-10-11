@@ -119,13 +119,13 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_ACCESS_KEY_ID" == "null" ]; then
-    echo "ERROR! Failed to get aws_access_key_id!"
+    echo "ERROR! Failed to get [aws_access_key_id]!"
     echo "ERROR:[$AWS_ACCESS_KEY_ID]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE="Failed to get aws_access_key_id"
+    ERROR_CAUSE="Failed to get [aws_access_key_id]"
   fi
 
   ############################################
@@ -150,13 +150,13 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_SECRET_ACCESS_KEY" == "null" ]; then
-    echo "ERROR! Failed to get aws_secret_access_key!"
+    echo "ERROR! Failed to get [aws_secret_access_key]!"
     echo "ERROR:[$AWS_SECRET_ACCESS_KEY]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get aws_secret_access_key!'
+    ERROR_CAUSE='Failed to get [aws_secret_access_key]!'
   fi
 
   ############################################
@@ -181,13 +181,13 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$S3_BUCKET" == "null" ]; then
-    echo "ERROR! Failed to get s3_bucket!"
+    echo "ERROR! Failed to get [s3_bucket]!"
     echo "ERROR:[$S3_BUCKET]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get s3_bucket!'
+    ERROR_CAUSE='Failed to get [s3_bucket]!'
   fi
 
   ############################################
@@ -212,13 +212,13 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_STACK_NAME" == "null" ]; then
-    echo "ERROR! Failed to get aws_stack_name!"
+    echo "ERROR! Failed to get [aws_stack_name]!"
     echo "ERROR:[$AWS_STACK_NAME]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get aws_stack_name!'
+    ERROR_CAUSE='Failed to get [aws_stack_name]!'
   fi
 
   ############################################
@@ -243,13 +243,13 @@ ValidateConfigurationFile()
   # Check the shell for errors #
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_CAPABILITIES_IAM" == "null" ]; then
-    echo "ERROR! Failed to get aws_capability_iam!"
+    echo "ERROR! Failed to get [aws_capability_iam]!"
     echo "ERROR:[$AWS_CAPABILITIES_IAM]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get aws_capability_iam!'
+    ERROR_CAUSE='Failed to get [aws_capability_iam]!'
   fi
 
   ############################################
@@ -275,7 +275,7 @@ ValidateConfigurationFile()
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_REGION" == "null" ]; then
     # Error
-    echo "ERROR! Failed to get region!"
+    echo "ERROR! Failed to get [region]!"
     echo "ERROR:[$AWS_REGION]"
   else
     # Fall back to default
@@ -306,7 +306,7 @@ ValidateConfigurationFile()
   ##############################
   if [ $ERROR_CODE -ne 0 ] || [ "$AWS_OUTPUT" == "null" ]; then
     # Error
-    echo "ERROR! Failed to get output!"
+    echo "ERROR! Failed to get [output]!"
     echo "ERROR:[$AWS_OUTPUT]"
   else
     # Fall back to default
@@ -413,52 +413,52 @@ GetGitHubVars()
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_SHA" ]; then
-    echo "ERROR! Failed to get GITHUB_SHA!"
+    echo "ERROR! Failed to get [GITHUB_SHA]!"
     echo "ERROR:[$GITHUB_SHA]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_SHA!'
+    ERROR_CAUSE='Failed to get [GITHUB_SHA]!'
   fi
 
   ############################
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_TOKEN" ]; then
-    echo "ERROR! Failed to get GITHUB_TOKEN!"
+    echo "ERROR! Failed to get [GITHUB_TOKEN]!"
     echo "ERROR:[$GITHUB_TOKEN]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_TOKEN!'
+    ERROR_CAUSE='Failed to get [GITHUB_TOKEN]!'
   fi
 
   ############################
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_WORKSPACE" ]; then
-    echo "ERROR! Failed to get GITHUB_WORKSPACE!"
+    echo "ERROR! Failed to get [GITHUB_WORKSPACE]!"
     echo "ERROR:[$GITHUB_WORKSPACE]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_WORKSPACE!'
+    ERROR_CAUSE='Failed to get [GITHUB_WORKSPACE]!'
   fi
 
   ############################
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_EVENT_PATH" ]; then
-    echo "ERROR! Failed to get GITHUB_EVENT_PATH!"
+    echo "ERROR! Failed to get [GITHUB_EVENT_PATH]!"
     echo "ERROR:[$GITHUB_EVENT_PATH]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_EVENT_PATH!'
+    ERROR_CAUSE='Failed to get [GITHUB_EVENT_PATH]!'
   fi
 
   ##################################################
@@ -475,13 +475,13 @@ GetGitHubVars()
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_ORG" ]; then
-    echo "ERROR! Failed to get GITHUB_ORG!"
+    echo "ERROR! Failed to get [GITHUB_ORG]!"
     echo "ERROR:[$GITHUB_ORG]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_ORG!'
+    ERROR_CAUSE='Failed to get [GITHUB_ORG]!'
   fi
 
   #######################
@@ -494,13 +494,13 @@ GetGitHubVars()
   # Validate we have a value #
   ############################
   if [ -z "$GITHUB_REPO" ]; then
-    echo "ERROR! Failed to get GITHUB_REPO!"
+    echo "ERROR! Failed to get [GITHUB_REPO]!"
     echo "ERROR:[$GITHUB_REPO]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get GITHUB_REPO!'
+    ERROR_CAUSE='Failed to get [GITHUB_REPO]!'
   fi
 }
 ################################################################################
@@ -633,7 +633,7 @@ CreateCheck()
     # Validate we have a value #
     ############################
     if [ -z "$CHECK_ID" ]; then
-      echo "ERROR! Failed to get CHECK_ID!"
+      echo "ERROR! Failed to get [CHECK_ID]!"
       echo "ERROR:[$CHECK_ID]"
       exit 1
     fi
