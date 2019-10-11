@@ -19,7 +19,7 @@ RUN apt-get update
 
 # Install pre-reqs
 RUN apt-get install -y \
-    && python curl yq jq locales
+    && python curl yq jq locales \
     && build-essential curl file git
 
 # download and install pip
