@@ -80,6 +80,12 @@ LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 #### Function ValidateConfigurationFile ########################################
 ValidateConfigurationFile()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Validating input file..."
+
   ####################################################################
   # Validate the config file is in the repository and pull variables #
   ####################################################################
@@ -318,6 +324,12 @@ ValidateConfigurationFile()
 #### Function CreateLocalConfiguration #########################################
 CreateLocalConfiguration()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Creating local configuration file..."
+
   ########################################
   # Create the directory if not existant #
   ########################################
@@ -391,6 +403,12 @@ CreateLocalConfiguration()
 #### Function GetGitHubVars ####################################################
 GetGitHubVars()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Gathering GitHub information..."
+
   ############################
   # Validate we have a value #
   ############################
@@ -489,9 +507,17 @@ GetGitHubVars()
 #### Function ValidateAWSCLI ###################################################
 ValidateAWSCLI()
 {
-  ##########################################
-  # Validate we have access to the aws cli #
-  ##########################################
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Validating AWS information..."
+
+  ############################################
+  ############################################
+  ## Validate we have access to the aws cli ##
+  ############################################
+  ############################################
   VALIDATE_AWS_CMD=$(which aws 2>&1)
 
   #######################
@@ -513,9 +539,11 @@ ValidateAWSCLI()
     ERROR_CAUSE='Failed to find aws cli!'
   fi
 
-  ##########################################
-  # Validate we have access to the aws cli #
-  ##########################################
+  ############################################
+  ############################################
+  ## Validate we have access to the aws cli ##
+  ############################################
+  ############################################
   VALIDATE_SAM_CMD=$(which sam 2>&1)
 
   #######################
@@ -536,11 +564,42 @@ ValidateAWSCLI()
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to find aws sam cli!'
   fi
+
+  #######################################
+  #######################################
+  ## Validate we can see AWS s3 bucket ##
+  #######################################
+  #######################################
+  CHECK_BUCKET_CMD=$(aws s3 ls "$S3_BUCKET" 2>&1)
+
+  #######################
+  # Load the error code #
+  #######################
+  ERROR_CODE=$?
+
+  ##############################
+  # Check the shell for errors #
+  ##############################
+  if [ $ERROR_CODE -ne 0 ]; then
+    echo "ERROR! Failed to access AWS S3 bucket:[$S3_BUCKET]"
+    echo "ERROR:[$CHECK_BUCKET_CMD]"
+    ###################################################
+    # Set the ERROR_FOUND flag to 1 to drop out build #
+    ###################################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to access AWS S3 bucket:[$S3_BUCKET]"
+  fi
 }
 ################################################################################
 #### Function CreateCheck ######################################################
 CreateCheck()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Creating GitHub Check..."
+
   ##########################################
   # Call to Github to create the Check API #
   ##########################################
@@ -584,6 +643,12 @@ CreateCheck()
 #### Function RunDeploy ########################################################
 RunDeploy()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Running AWS Deploy Process..."
+
   # Need to complete the following actions to deploy to AWS Serverless:
   # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-deploying.html
   # - Package SAM template
@@ -603,6 +668,12 @@ RunDeploy()
 #### Function PackageTemplate ##################################################
 PackageTemplate()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Packaging the template..."
+
   ##############################################
   # Check the source code for the SAM template #
   ##############################################
@@ -613,29 +684,6 @@ PackageTemplate()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to find:[sam.yml] in root of repository!'
-  fi
-
-  #####################################
-  # Validate we can see AWS s3 bucket #
-  #####################################
-  CHECK_BUCKET_CMD=$(aws s3 ls "$S3_BUCKET" 2>&1)
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! Failed to access AWS S3 bucket:[$S3_BUCKET]"
-    echo "ERROR:[$CHECK_BUCKET_CMD]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE="Failed to access AWS S3 bucket:[$S3_BUCKET]"
   fi
 
   ############################
@@ -666,6 +714,12 @@ PackageTemplate()
 #### Function DeployTemplate ###################################################
 DeployTemplate()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Deploying the template..."
+
   ############################################
   # Need to validate the package was created #
   ############################################
@@ -713,6 +767,12 @@ DeployTemplate()
 #### Function UpdateCheck ######################################################
 UpdateCheck()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Updating GitHub Check..."
+
   ###########################
   # Build the finished time #
   ###########################
@@ -759,16 +819,6 @@ UpdateCheck()
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
-  ####################
-  # Validate AWS CLI #
-  ####################
-  # Need to validate we have the aws cli installed
-  # And avilable for usage
-  ValidateAWSCLI
-fi
-
-# Go into loop if no errors detected
-if [ $ERROR_FOUND -eq 0 ]; then
   #######################
   # Get Github Env Vars #
   #######################
@@ -785,6 +835,16 @@ if [ $ERROR_FOUND -eq 0 ]; then
   # Look for the users configuration file to
   # connect to AWS and start the Serverless app
   ValidateConfigurationFile
+fi
+
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  ####################
+  # Validate AWS CLI #
+  ####################
+  # Need to validate we have the aws cli installed
+  # And avilable for usage
+  ValidateAWSCLI
 fi
 
 # Go into loop if no errors detected
