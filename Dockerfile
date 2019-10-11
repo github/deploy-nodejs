@@ -6,25 +6,29 @@
 FROM ubuntu:18.04
 
 # Run the Update
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update \
+    && apt-get upgrade -y
 
-# Add lib to setup additional libs
-RUN apt-get install -y software-properties-common
-
-# Run and get repository
-RUN add-apt-repository ppa:rmescandon/yq
-
-# Run the Update
-RUN apt-get update
+# Add lib and repo deps to setup additional libs
+RUN apt-get install -y software-properties-common \
+    && add-apt-repository ppa:rmescandon/yq \
+    && apt-get update
 
 # Install pre-reqs
 RUN apt-get install -y \
-    && python curl yq jq locales \
-    && build-essential curl file git
+    python \
+    curl \
+    yq \
+    jq \
+    locales \
+    build-essential \
+    curl \
+    file \
+    git
 
 # download and install pip
-RUN curl -sO https://bootstrap.pypa.io/get-pip.py
-RUN python get-pip.py
+RUN curl -sO https://bootstrap.pypa.io/get-pip.py \
+    && python get-pip.py
 
 # install AWS CLI
 RUN pip install awscli
@@ -46,14 +50,12 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8 \
     && /root/.linuxbrew/Homebrew/bin/brew tap aws/tap \
     && /root/.linuxbrew/Homebrew/bin/brew install aws-sam-cli
 
-# Label the instance
-LABEL com.github.actions.name="NodeJS Deploy AWS Serverless"
-LABEL com.github.actions.description="Deploy your NodeJS app to AWS Serverless"
-LABEL com.github.actions.icon="code"
-LABEL com.github.actions.color="red"
-
-# Set the maintainer
-LABEL maintainer="GitHub DevOps <github_devops@github.com>"
+# Label the instance and set maintainer
+LABEL com.github.actions.name="NodeJS Deploy AWS Serverless" \
+      com.github.actions.description="Deploy your NodeJS app to AWS Serverless" \
+      com.github.actions.icon="code" \
+      com.github.actions.color="red" \
+      maintainer="GitHub DevOps <github_devops@github.com>"
 
 # Copy files to container
 COPY lib /action/lib
