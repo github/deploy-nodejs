@@ -21,15 +21,17 @@ set -e
 ###########
 # Globals #
 ###########
-AWS_ACCESS_KEY_ID=''                      # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY=''                  # aws_secret_access_key to auth
-AWS_REGION=''                             # AWS region to deploy
-AWS_OUTPUT=''                             # AWS output format
-S3_BUCKET=''                              # AWS S3 bucket to package and deploy
-CHECK_NAME='GitHub AWS Deploy Serverless' # Name of the GitHub Action
-CHECK_ID=''                               # GitHub Check ID that is created
-AWS_CAPABILITIES_IAM=''                   # AWS IAM role for the deployed SAM
-AWS_STACK_NAME=''                         # AWS Cloud Formation Stack name of SAM
+AWS_ACCESS_KEY_ID=''                        # aws_access_key_id to auth
+AWS_SECRET_ACCESS_KEY=''                    # aws_secret_access_key to auth
+AWS_REGION=''                               # AWS region to deploy
+AWS_OUTPUT=''                               # AWS output format
+S3_BUCKET=''                                # AWS S3 bucket to package and deploy
+CHECK_NAME='GitHub AWS Deploy Serverless'   # Name of the GitHub Action
+CHECK_ID=''                                 # GitHub Check ID that is created
+AWS_CAPABILITIES_IAM=''                     # AWS IAM role for the deployed SAM
+AWS_STACK_NAME=''                           # AWS Cloud Formation Stack name of SAM
+SAM_CMD='/root/.linuxbrew/Homebrew/bin/sam' # Path to AWS SAM Exec
+RUNTIME=''                                  # Runtime for AWS SAM App
 
 ###################
 # GitHub ENV Vars #
@@ -544,7 +546,7 @@ ValidateAWSCLI()
   ## Validate we have access to the aws cli ##
   ############################################
   ############################################
-  VALIDATE_SAM_CMD=$(which sam 2>&1)
+  VALIDATE_SAM_CMD=$(which "$SAM_CMD" 2>&1)
 
   #######################
   # Load the error code #
@@ -654,6 +656,11 @@ RunDeploy()
   # - Package SAM template
   # - Deploy packaged SAM template
 
+  #################
+  # Build the App #
+  #################
+  BuidApp
+
   ########################
   # Package the template #
   ########################
@@ -663,6 +670,18 @@ RunDeploy()
   # Deploy the template #
   #######################
   DeployTemplate
+}
+################################################################################
+#### Function BuidApp ##########################################################
+BuidApp()
+{
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Building the SAM application..."
+
+  
 }
 ################################################################################
 #### Function PackageTemplate ##################################################
@@ -689,7 +708,7 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-  SAM_PACKAGE_CMD=$(sam package --template-file "$GITHUB_WORKSPACE/sam.yaml" --s3-bucket "$S3_BUCKET" --output-template-file "packaged.yaml" --region $AWS_REGION 2>&1)
+  SAM_PACKAGE_CMD=$("$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/sam.yaml" --s3-bucket "$S3_BUCKET" --output-template-file "packaged.yaml" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -735,7 +754,7 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(sam deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
+  SAM_DEPLOY_CMD=$("$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -761,6 +780,138 @@ DeployTemplate()
     #########################################
     ACTION_CONCLUSTION='success'
     ACTION_OUTPUT="Successfully Deployed SAM App"
+  fi
+}
+################################################################################
+#### Function ValidateSourceAndRuntime #########################################
+ValidateSourceAndRuntime()
+{
+  ##############################################
+  # Validate the user has the template.yml and #
+  # we have the correct runtime set            #
+  ##############################################
+
+  ############################################
+  # Look for the template in the source code #
+  ############################################
+  if [ ! -f "$GITHUB_WORKSPACE/template.yml" ]; then
+    # Errors found
+    echo "ERROR! Failed to find template:[$GITHUB_WORKSPACE/template.yml]!"
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to find template:[$GITHUB_WORKSPACE/template.yml]!"
+  else
+    #################################
+    # Get the runtime from template #
+    #################################
+    GET_RUNTIME_CMD=$(grep "Runtime" "$GITHUB_WORKSPACE/template.yml" 2>&1)
+
+    #######################
+    # Load the error code #
+    #######################
+    ERROR_CODE=$?
+
+    #############################################
+    # Clean any whitespace that may be returned #
+    #############################################
+    GET_RUNTIME_CMD_NO_WHITESPACE="$(echo "${GET_RUNTIME_CMD}" | tr -d '[:space:]')"
+    GET_RUNTIME_CMD=$GET_RUNTIME_CMD_NO_WHITESPACE
+
+    ##############################
+    # Check the shell for errors #
+    ##############################
+    if [ $ERROR_CODE -ne 0 ]; then
+      # Errors found
+      echo "ERROR! Failed to find [Runtime] in:[$GITHUB_WORKSPACE/template.yml]!"
+      #########################################
+      # Need to update the ACTION_CONCLUSTION #
+      #########################################
+      ERROR_FOUND=1
+      ERROR_CAUSE="Failed to find [Runtime] in:[$GITHUB_WORKSPACE/template.yml]!"
+    else
+      ###########################
+      # Need to set the runtime #
+      ###########################
+      RUNTIME=$(echo "$GET_RUNTIME_CMD" | cut -f2 -d':')
+    fi
+  fi
+
+  ##################################################
+  # Need to set the Runtime for the app deployment #
+  ##################################################
+  SetRuntime "$RUNTIME"
+}
+################################################################################
+#### Function SetRuntime #######################################################
+SetRuntime()
+{
+  ################
+  # Pull in vars #
+  ################
+  RUNTIME=$1
+
+  ###########################################
+  # Remove the 'NodeJS' and get the version #
+  ###########################################
+  VERSION=$(echo "${RUNTIME:6}")
+
+  # echo "Version:[$VERSION]"
+
+  ################
+  # Set the vars #
+  ################
+  VERSION_MAJOR=$(echo "$VERSION" | cut -f1 -d'.')
+  VERSION_MINOR=$(echo "$VERSION" | cut -f2 -d'.')
+
+  ################################
+  # Check if minor is x or undef #
+  ################################
+  if [ "$VERSION_MINOR" == "x" ] || [ -z "$VERSION_MINOR" ]; then
+    #########################
+    # Need to set to latest #
+    #########################
+    NVM_INSTALL_CMD=$(nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR" 2>&1)
+
+    #######################
+    # Load the error code #
+    #######################
+    ERROR_CODE=$?
+
+    ##############################
+    # Check the shell for errors #
+    ##############################
+    if [ $ERROR_CODE -ne 0 ]; then
+      echo "ERROR! Failed to install and set Node:[$VERSION_MAJOR]!"
+      #########################################
+      # Need to update the ACTION_CONCLUSTION #
+      #########################################
+      ERROR_FOUND=1
+      ERROR_CAUSE="Failed to install and set Node:[$VERSION_MAJOR]!"
+    fi
+  else
+    #########################
+    # Running exact version #
+    #########################
+    NVM_INSTALL_CMD=$(nvm install "$VERSION" ; nvm use "$VERSION" 2>&1)
+
+    #######################
+    # Load the error code #
+    #######################
+    ERROR_CODE=$?
+
+    ##############################
+    # Check the shell for errors #
+    ##############################
+    if [ $ERROR_CODE -ne 0 ]; then
+      echo "ERROR! Failed to install and set Node:[$VERSION]!"
+      #########################################
+      # Need to update the ACTION_CONCLUSTION #
+      #########################################
+      ERROR_FOUND=1
+      ERROR_CAUSE="Failed to install and set Node:[$VERSION]!"
+    fi
   fi
 }
 ################################################################################
@@ -856,6 +1007,11 @@ if [ $ERROR_FOUND -eq 0 ]; then
   # to connect to AWS and deploy the Serverless app
   CreateLocalConfiguration
 fi
+
+########################################
+# Validate the user source and runtime #
+########################################
+ValidateSourceAndRuntime
 
 ################
 # Create Check #
