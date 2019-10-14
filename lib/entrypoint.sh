@@ -689,7 +689,7 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-  SAM_PACKAGE_CMD=$(sam package --template-file "$GITHUB_WORKSPACE/sam.yaml" --s3-bucket "$S3_BUCKET" --output-template-file "packaged.yaml" 2>&1)
+  SAM_PACKAGE_CMD=$(sam package --template-file "$GITHUB_WORKSPACE/sam.yaml" --s3-bucket "$S3_BUCKET" --output-template-file "packaged.yaml" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -735,7 +735,7 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(sam deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" 2>&1)
+  SAM_DEPLOY_CMD=$(sam deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
