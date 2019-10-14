@@ -681,7 +681,29 @@ BuidApp()
   echo "--------------------------------------------"
   echo "Building the SAM application..."
 
-  
+  #########################
+  # Build the application #
+  #########################
+  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build 2>&1)
+
+  #######################
+  # Load the error code #
+  #######################
+  ERROR_CODE=$?
+
+  ##############################
+  # Check the shell for errors #
+  ##############################
+  if [ $ERROR_CODE -ne 0 ]; then
+    # Errors found
+    echo "ERROR! Failed to build SAM application!"
+    echo "ERROR:[$BUILD_CMD]"
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ERROR_FOUND=1
+    ERROR_CAUSE="Failed to build SAM application:[$BUILD_CMD]!"
+  fi
 }
 ################################################################################
 #### Function PackageTemplate ##################################################
