@@ -39,18 +39,18 @@ RUN apt-get install -y \
 ##############################
 # Install NVM for all NodeJS #
 ##############################
-ENV NVM_DIR /usr/local/nvm \
-    NODE_VERSION 10.16.3
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 10.16.3
 
 RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.20.0/install.sh | bash \
     && . $NVM_DIR/nvm.sh \
+    && mkdir $NVM_DIR/versions \
     && nvm install $NODE_VERSION \
     && nvm alias default $NODE_VERSION \
-    && nvm use default \
-    && mkdir $NVM_DIR/versions
+    && nvm use default
 
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules \
-    PATH      $NVM_DIR/v$NODE_VERSION/bin:$PATH
+ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/v$NODE_VERSION/bin:$PATH
 
 ############################
 # Download and install pip #
@@ -78,9 +78,11 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8 \
     && git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew \
     && mkdir ~/.linuxbrew/bin \
     && ln -s ~/.linuxbrew/Homebrew/bin/brew ~/.linuxbrew/bin \
-    && eval $(~/.linuxbrew/bin/brew shellenv)
+    && eval $(~/.linuxbrew/bin/brew shellenv) \
     && /root/.linuxbrew/Homebrew/bin/brew tap aws/tap \
     && /root/.linuxbrew/Homebrew/bin/brew install aws-sam-cli
+
+ENV PATH="/root/.linuxbrew/Homebrew/bin:${PATH}"
 
 #########################################
 # Label the instance and set maintainer #

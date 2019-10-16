@@ -24,13 +24,16 @@ s3_bucket:
 # NOTE: Defaults to "mystack" if left empty
 aws_stack_name: mystack
 
-######################
-# AWS Capability IAM #
-######################
-# NOTE: This needs the capabilities to build and deploy your SAM
-# Minimal rules:
-# ???
-aws_capability_iam:
+####################
+# AWS SAM Template #
+####################
+# NOTE: This is the AWS SAM template.yml file that we need to deploy
+# Pathing is from root of repository:
+# Example:
+# if file is called `template.yml` and is in the root of repository
+# under the '.github' folder:
+# sam_template: .github/template.yml
+sam_template:
 
 ###########################################
 # aws_access_key_id for connection to AWS #
@@ -50,10 +53,3 @@ aws_secret_access_key:
 # Default region is: us-west-2
 # if not provided below
 region: us-west-2
-
-################################
-# output for connection to AWS #
-################################
-# Default output is: json
-# if not provided below
-output: json

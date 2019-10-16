@@ -24,11 +24,10 @@ set -e
 AWS_ACCESS_KEY_ID=''                        # aws_access_key_id to auth
 AWS_SECRET_ACCESS_KEY=''                    # aws_secret_access_key to auth
 AWS_REGION=''                               # AWS region to deploy
-AWS_OUTPUT=''                               # AWS output format
 S3_BUCKET=''                                # AWS S3 bucket to package and deploy
+AWS_SAM_TEMPLATE=''                         # Path to the SAM template in the user repository
 CHECK_NAME='GitHub AWS Deploy Serverless'   # Name of the GitHub Action
 CHECK_ID=''                                 # GitHub Check ID that is created
-AWS_CAPABILITIES_IAM=''                     # AWS IAM role for the deployed SAM
 AWS_STACK_NAME=''                           # AWS Cloud Formation Stack name of SAM
 SAM_CMD='/root/.linuxbrew/Homebrew/bin/sam' # Path to AWS SAM Exec
 RUNTIME=''                                  # Runtime for AWS SAM App
@@ -40,7 +39,7 @@ GITHUB_SHA="${GITHUB_SHA}"                # GitHub sha from the commit
 GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"  # Github Event Path
 GITHUB_TOKEN="${GITHUB_TOKEN}"            # GitHub token
 GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"    # Github Workspace
-GITHUB_URL='https://api.github.com/'      # GitHub API URL
+GITHUB_URL='https://api.github.com'      # GitHub API URL
 
 ##############
 # Built Vars #
@@ -62,6 +61,7 @@ DEFAULT_OUTPUT='json'                     # Default Output format
 DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
 LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
+AWS_PACKAGED='packaged.yml'               # Created SAM Package
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -99,6 +99,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to find configuration file in user repository!'
+  else
+    echo "Success! Found User config file at:[$USER_CONFIG_FILE]"
   fi
 
   ########################################
@@ -229,12 +231,12 @@ ValidateConfigurationFile()
   AWS_STACK_NAME_NO_WHITESPACE="$(echo "${AWS_STACK_NAME}" | tr -d '[:space:]')"
   AWS_STACK_NAME=$AWS_STACK_NAME_NO_WHITESPACE
 
-  ##########################
-  ##########################
-  ## Get the AWS IAM role ##
-  ##########################
-  ##########################
-  AWS_CAPABILITIES_IAM=$(yq r "$USER_CONFIG_FILE" aws_capability_iam 2>&1)
+  ##############################
+  ##############################
+  ## Get the AWS SAM Template ##
+  ##############################
+  ##############################
+  AWS_SAM_TEMPLATE=$(yq r "$USER_CONFIG_FILE" sam_template 2>&1)
 
   #######################
   # Load the error code #
@@ -244,21 +246,21 @@ ValidateConfigurationFile()
   ##############################
   # Check the shell for errors #
   ##############################
-  if [ $ERROR_CODE -ne 0 ] || [ "$AWS_CAPABILITIES_IAM" == "null" ]; then
-    echo "ERROR! Failed to get [aws_capability_iam]!"
-    echo "ERROR:[$AWS_CAPABILITIES_IAM]"
+  if [ $ERROR_CODE -ne 0 ] || [ "$AWS_SAM_TEMPLATE" == "null" ]; then
+    echo "ERROR! Failed to get [sam_template]!"
+    echo "ERROR:[$AWS_SAM_TEMPLATE]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get [aws_capability_iam]!'
+    ERROR_CAUSE='Failed to get [sam_template]!'
   fi
 
   ############################################
   # Clean any whitespace that may be entered #
   ############################################
-  AWS_CAPABILITIES_IAM_NO_WHITESPACE="$(echo "${AWS_CAPABILITIES_IAM}" | tr -d '[:space:]')"
-  AWS_CAPABILITIES_IAM=$AWS_CAPABILITIES_IAM_NO_WHITESPACE
+  AWS_SAM_TEMPLATE_NO_WHITESPACE="$(echo "${AWS_SAM_TEMPLATE}" | tr -d '[:space:]')"
+  AWS_SAM_TEMPLATE=$AWS_SAM_TEMPLATE_NO_WHITESPACE
 
   ####################
   ####################
@@ -290,37 +292,6 @@ ValidateConfigurationFile()
   ############################################
   AWS_REGION_NO_WHITESPACE="$(echo "${AWS_REGION}" | tr -d '[:space:]')"
   AWS_REGION=$AWS_REGION_NO_WHITESPACE
-
-  ####################
-  ####################
-  ## Get the output ##
-  ####################
-  ####################
-  AWS_OUTPUT=$(yq r "$USER_CONFIG_FILE" output 2>&1)
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ] || [ "$AWS_OUTPUT" == "null" ]; then
-    # Error
-    echo "ERROR! Failed to get [output]!"
-    echo "ERROR:[$AWS_OUTPUT]"
-  else
-    # Fall back to default
-    echo "No value provided... Defaulting to:[$DEFAULT_OUTPUT]"
-    AWS_OUTPUT="$DEFAULT_OUTPUT"
-  fi
-
-  ############################################
-  # Clean any whitespace that may be entered #
-  ############################################
-  AWS_OUTPUT_NO_WHITESPACE="$(echo "${AWS_OUTPUT}" | tr -d '[:space:]')"
-  AWS_OUTPUT=$AWS_OUTPUT_NO_WHITESPACE
 }
 ################################################################################
 #### Function CreateLocalConfiguration #########################################
@@ -381,7 +352,7 @@ CreateLocalConfiguration()
   #######################################
   # Create the local file ~/.aws/config #
   #######################################
-  CREATE_CONFIG_CMD=$(echo -e "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> $LOCAL_CONFIG_FILE 2>&1)
+  CREATE_CONFIG_CMD=$(echo -e "[default]\nregion=$AWS_REGION\noutput=$DEFAULT_OUTPUT" >> $LOCAL_CONFIG_FILE 2>&1)
 
   #######################
   # Load the error code #
@@ -730,7 +701,7 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-  SAM_PACKAGE_CMD=$("$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/sam.yaml" --s3-bucket "$S3_BUCKET" --output-template-file "packaged.yaml" --region $AWS_REGION 2>&1)
+  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -764,19 +735,19 @@ DeployTemplate()
   ############################################
   # Need to validate the package was created #
   ############################################
-  if [ ! -f "$GITHUB_WORKSPACE/packaged.yml" ]; then
-    echo "ERROR! Failed to find created package:[packaged.yml]"
+  if [ ! -f "$GITHUB_WORKSPACE/$AWS_PACKAGED" ]; then
+    echo "ERROR! Failed to find created package:[$AWS_PACKAGED]"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to find created package:[packaged.yml]'
+    ERROR_CAUSE="Failed to find created package:[$AWS_PACKAGED]"
   fi
 
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$("$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -816,19 +787,19 @@ ValidateSourceAndRuntime()
   ############################################
   # Look for the template in the source code #
   ############################################
-  if [ ! -f "$GITHUB_WORKSPACE/template.yml" ]; then
+  if [ ! -f "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" ]; then
     # Errors found
-    echo "ERROR! Failed to find template:[$GITHUB_WORKSPACE/template.yml]!"
+    echo "ERROR! Failed to find template:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
     ERROR_FOUND=1
-    ERROR_CAUSE="Failed to find template:[$GITHUB_WORKSPACE/template.yml]!"
+    ERROR_CAUSE="Failed to find template:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
   else
     #################################
     # Get the runtime from template #
     #################################
-    GET_RUNTIME_CMD=$(grep "Runtime" "$GITHUB_WORKSPACE/template.yml" 2>&1)
+    GET_RUNTIME_CMD=$(grep "Runtime" "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" 2>&1)
 
     #######################
     # Load the error code #
@@ -846,12 +817,12 @@ ValidateSourceAndRuntime()
     ##############################
     if [ $ERROR_CODE -ne 0 ]; then
       # Errors found
-      echo "ERROR! Failed to find [Runtime] in:[$GITHUB_WORKSPACE/template.yml]!"
+      echo "ERROR! Failed to find [Runtime] in:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
       #########################################
       # Need to update the ACTION_CONCLUSTION #
       #########################################
       ERROR_FOUND=1
-      ERROR_CAUSE="Failed to find [Runtime] in:[$GITHUB_WORKSPACE/template.yml]!"
+      ERROR_CAUSE="Failed to find [Runtime] in:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
     else
       ###########################
       # Need to set the runtime #
@@ -916,7 +887,7 @@ SetRuntime()
     #########################
     # Running exact version #
     #########################
-    NVM_INSTALL_CMD=$(nvm install "$VERSION" ; nvm use "$VERSION" 2>&1)
+    NVM_INSTALL_CMD=$(. /usr/local/nvm/nvm.sh ; nvm install "$VERSION" ; nvm use "$VERSION" 2>&1)
 
     #######################
     # Load the error code #
@@ -1012,22 +983,22 @@ fi
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
-  ####################
-  # Validate AWS CLI #
-  ####################
-  # Need to validate we have the aws cli installed
-  # And avilable for usage
-  ValidateAWSCLI
-fi
-
-# Go into loop if no errors detected
-if [ $ERROR_FOUND -eq 0 ]; then
   ###################################
   # Create local configuration file #
   ###################################
   # Create the local configuration file used
   # to connect to AWS and deploy the Serverless app
   CreateLocalConfiguration
+fi
+
+# Go into loop if no errors detected
+if [ $ERROR_FOUND -eq 0 ]; then
+  ####################
+  # Validate AWS CLI #
+  ####################
+  # Need to validate we have the aws cli installed
+  # And avilable for usage
+  ValidateAWSCLI
 fi
 
 ########################################
