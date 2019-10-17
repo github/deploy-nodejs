@@ -101,9 +101,9 @@ COPY lib /action/lib
 ######################
 # Set the entrypoint #
 ######################
-#ENTRYPOINT ["/action/lib/entrypoint.sh"]
+ENTRYPOINT ["/action/lib/entrypoint.sh"]
 
 ########################################
 # Enable for DEBUG to keep agent alive #
 ########################################
-CMD tail -f /dev/null
+#CMD tail -f /dev/null
