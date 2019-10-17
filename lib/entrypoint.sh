@@ -702,7 +702,7 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region $AWS_REGION 2>&1)
+  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION" 2>&1)
 
   #######################
   # Load the error code #
@@ -748,7 +748,7 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region $AWS_REGION 2>&1)
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION" 2>&1)
 
   #######################
   # Load the error code #
@@ -849,6 +849,7 @@ SetRuntime()
   ###########################################
   # Remove the 'NodeJS' and get the version #
   ###########################################
+  # shellcheck disable=SC2116
   VERSION=$(echo "${RUNTIME:6}")
 
   # echo "Version:[$VERSION]"
@@ -866,6 +867,7 @@ SetRuntime()
     #########################
     # Need to set to latest #
     #########################
+    # shellcheck disable=SC1091
     NVM_INSTALL_CMD=$(. "$NVM_SOURCE"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR" 2>&1)
 
     #######################
@@ -878,6 +880,7 @@ SetRuntime()
     ##############################
     if [ $ERROR_CODE -ne 0 ]; then
       echo "ERROR! Failed to install and set Node:[$VERSION_MAJOR]!"
+      echo "ERROR:[$NVM_INSTALL_CMD]"
       #########################################
       # Need to update the ACTION_CONCLUSTION #
       #########################################
@@ -888,7 +891,8 @@ SetRuntime()
     #########################
     # Running exact version #
     #########################
-    NVM_INSTALL_CMD=$(. /usr/local/nvm/nvm.sh ; nvm install "$VERSION" ; nvm use "$VERSION" 2>&1)
+    # shellcheck disable=SC1091
+    NVM_INSTALL_CMD=$(. "$NVM_SOURCE" ; nvm install "$VERSION" ; nvm use "$VERSION" 2>&1)
 
     #######################
     # Load the error code #
@@ -900,6 +904,7 @@ SetRuntime()
     ##############################
     if [ $ERROR_CODE -ne 0 ]; then
       echo "ERROR! Failed to install and set Node:[$VERSION]!"
+      echo "ERROR:[$NVM_INSTALL_CMD]"
       #########################################
       # Need to update the ACTION_CONCLUSTION #
       #########################################
