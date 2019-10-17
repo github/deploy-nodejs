@@ -13,11 +13,6 @@
 # - https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-where
 # - https://developer.github.com/v3/checks/runs/
 
-#####################
-# Set exit on ERROR #
-#####################
-set -e
-
 ###########
 # Globals #
 ###########
@@ -37,9 +32,9 @@ RUNTIME=''                                  # Runtime for AWS SAM App
 ###################
 GITHUB_SHA="${GITHUB_SHA}"                # GitHub sha from the commit
 GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"  # Github Event Path
-GITHUB_TOKEN="${GITHUB_TOKEN}"            # GitHub token
+GITHUB_TOKEN="${ACTIONS_RUNTIME_TOKEN}"   # GitHub token
 GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"    # Github Workspace
-GITHUB_URL='https://api.github.com'      # GitHub API URL
+GITHUB_URL='https://api.github.com'       # GitHub API URL
 
 ##############
 # Built Vars #
@@ -131,6 +126,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to get [aws_access_key_id]"
+  else
+    echo "Successfully found:[aws_access_key_id]"
   fi
 
   ############################################
@@ -162,6 +159,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [aws_secret_access_key]!'
+  else
+    echo "Successfully found:[aws_secret_access_key]"
   fi
 
   ############################################
@@ -193,6 +192,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [s3_bucket]!'
+  else
+    echo "Successfully found:[s3_bucket]"
   fi
 
   ############################################
@@ -224,6 +225,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [aws_stack_name]!'
+  else
+    echo "Successfully found:[aws_stack_name]"
   fi
 
   ############################################
@@ -255,6 +258,8 @@ ValidateConfigurationFile()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [sam_template]!'
+  else
+    echo "Successfully found:[sam_template]"
   fi
 
   ############################################
@@ -282,10 +287,11 @@ ValidateConfigurationFile()
     # Error
     echo "ERROR! Failed to get [region]!"
     echo "ERROR:[$AWS_REGION]"
-  else
     # Fall back to default
     echo "No value provided... Defaulting to:[$DEFAULT_REGION]"
     AWS_REGION="$DEFAULT_REGION"
+  else
+    echo "Successfully found:[region]"
   fi
 
   ############################################
@@ -348,6 +354,8 @@ CreateLocalConfiguration()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to create file:[$LOCAL_CRED_FILE]!"
+  else
+    echo "Successfully created:[$LOCAL_CRED_FILE]"
   fi
 
   #######################################
@@ -371,6 +379,8 @@ CreateLocalConfiguration()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to create file:[$LOCAL_CONFIG_FILE]!"
+  else
+    echo "Successfully created:[$LOCAL_CONFIG_FILE]"
   fi
 }
 ################################################################################
@@ -394,6 +404,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_SHA]!'
+  else
+    echo "Successfully found:[GITHUB_SHA]"
   fi
 
   ############################
@@ -407,6 +419,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_TOKEN]!'
+  else
+    echo "Successfully found:[GITHUB_TOKEN]"
   fi
 
   ############################
@@ -420,6 +434,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_WORKSPACE]!'
+  else
+    echo "Successfully found:[GITHUB_WORKSPACE]"
   fi
 
   ############################
@@ -433,6 +449,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_EVENT_PATH]!'
+  else
+    echo "Successfully found:[GITHUB_EVENT_PATH]"
   fi
 
   ##################################################
@@ -456,6 +474,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_ORG]!'
+  else
+    echo "Successfully found:[GITHUB_ORG]"
   fi
 
   #######################
@@ -475,6 +495,8 @@ GetGitHubVars()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to get [GITHUB_REPO]!'
+  else
+    echo "Successfully found:[GITHUB_REPO]"
   fi
 }
 ################################################################################
@@ -511,6 +533,8 @@ ValidateAWSCLI()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to find aws cli!'
+  else
+    echo "Successfully validated:[aws cli]"
   fi
 
   ############################################
@@ -537,6 +561,8 @@ ValidateAWSCLI()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to find aws sam cli!'
+  else
+    echo "Successfully validated:[aws sam cli]"
   fi
 
   #######################################
@@ -562,6 +588,8 @@ ValidateAWSCLI()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to access AWS S3 bucket:[$S3_BUCKET]"
+  else
+    echo "Successfully validated:[aws s3 bucket authorization]"
   fi
 }
 ################################################################################
@@ -598,6 +626,7 @@ CreateCheck()
     echo "ERROR:[$CREATE_CHECK_CMD]"
     exit 1
   else
+    echo "Successfully Created GitHub Check"
     #############################################
     # Need to get the check ID that was created #
     #############################################
@@ -675,6 +704,8 @@ BuidApp()
     #########################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to build SAM application:[$BUILD_CMD]!"
+  else
+    echo "Successfully built local AWS SAM Application"
   fi
 }
 ################################################################################
@@ -691,12 +722,14 @@ PackageTemplate()
   # Check the source code for the SAM template #
   ##############################################
   if [ ! -f "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" ]; then
-    echo "ERROR! Failed to find:[sam.yml] in root of repository!"
+    echo "ERROR! Failed to find:[$AWS_SAM_TEMPLATE] in root of repository!"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE="Failed to find:[$AWS_SAM_TEMPLATE] in repository!"
+  else
+    echo "Successfully found:[$AWS_SAM_TEMPLATE]"
   fi
 
   ############################
@@ -721,6 +754,8 @@ PackageTemplate()
     #########################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to package SAM template!'
+  else
+    echo "Successfully packaged AWS SAM Application"
   fi
 }
 ################################################################################
@@ -769,6 +804,7 @@ DeployTemplate()
     ACTION_OUTPUT="Failed to deploy SAM App"
   else
     # Success
+    echo "Successfully deployed AWS SAM Application"
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
@@ -969,11 +1005,6 @@ UpdateCheck()
 ################################################################################
 ################################# MAIN #########################################
 ################################################################################
-
-echo "---------------------------"
-echo "PrintENV"
-printenv
-echo "---------------------------"
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
