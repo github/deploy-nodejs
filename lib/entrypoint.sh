@@ -961,11 +961,19 @@ UpdateCheck()
     echo "ERROR! Failed to update GitHub Check!"
     echo "ERROR:[$UPDATE_CHECK_CMD]"
     exit 1
+  else
+    echo "Success! Updated Github Checks API"
+    exit 0
   fi
 }
 ################################################################################
 ################################# MAIN #########################################
 ################################################################################
+
+echo "---------------------------"
+echo "PrintENV"
+printenv
+echo "---------------------------"
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
