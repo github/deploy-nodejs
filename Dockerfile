@@ -4,37 +4,31 @@
 #################################################
 #################################################
 
-###############################
-# Get Ubuntu 18.04 base image #
-###############################
+##################
+# Get base image #
+##################
 FROM ubuntu:18.04
 
 ##################
 # Run the Update #
 ##################
 RUN apt-get update \
-    && apt-get upgrade -y
-
-##################################################
-# Add lib and repo deps to setup additional libs #
-##################################################
-RUN apt-get install -y software-properties-common \
+    && apt-get upgrade -y \
+    && apt-get install -y software-properties-common \
     && add-apt-repository ppa:rmescandon/yq \
-    && apt-get update
-
-####################
-# Install pre-reqs #
-####################
-RUN apt-get install -y \
-    python \
-    curl \
-    yq \
-    jq \
-    locales \
-    build-essential \
-    curl \
-    file \
-    git
+    && apt-get update \
+    && apt-get install -y \
+         python \
+         curl \
+         yq \
+         jq \
+         locales \
+         build-essential \
+         curl \
+         file \
+         git \
+    && apt-get clean all \
+    && rm -rf /var/cache
 
 ##############################
 # Install NVM for all NodeJS #
