@@ -62,6 +62,7 @@ DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
 LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
+NVM_SOURCE='/usr/local/nvm/nvm.sh'        # NVM source location
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -747,7 +748,7 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
@@ -865,7 +866,7 @@ SetRuntime()
     #########################
     # Need to set to latest #
     #########################
-    NVM_INSTALL_CMD=$(nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR" 2>&1)
+    NVM_INSTALL_CMD=$(. "$NVM_SOURCE"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR" 2>&1)
 
     #######################
     # Load the error code #
