@@ -78,6 +78,14 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8 \
 
 ENV PATH="/root/.linuxbrew/Homebrew/bin:${PATH}"
 
+###########################################
+# Load GitHub Env Vars for Github Actions #
+###########################################
+ENV GITHUB_SHA=${GITHUB_SHA}
+ENV GITHUB_EVENT_PATH=${GITHUB_EVENT_PATH}
+ENV GITHUB_TOKEN=${GITHUB_TOKEN}
+ENV GITHUB_WORKSPACE=${GITHUB_WORKSPACE}
+
 #########################################
 # Label the instance and set maintainer #
 #########################################
