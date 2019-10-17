@@ -689,13 +689,13 @@ PackageTemplate()
   ##############################################
   # Check the source code for the SAM template #
   ##############################################
-  if [ ! -f "$GITHUB_WORKSPACE/sam.yaml" ]; then
+  if [ ! -f "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" ]; then
     echo "ERROR! Failed to find:[sam.yml] in root of repository!"
     ###################################################
     # Set the ERROR_FOUND flag to 1 to drop out build #
     ###################################################
     ERROR_FOUND=1
-    ERROR_CAUSE='Failed to find:[sam.yml] in root of repository!'
+    ERROR_CAUSE="Failed to find:[$AWS_SAM_TEMPLATE] in repository!"
   fi
 
   ############################
@@ -747,7 +747,7 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/packaged.yaml" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities "$AWS_CAPABILITIES_IAM" --region $AWS_REGION 2>&1)
 
   #######################
   # Load the error code #
