@@ -771,7 +771,7 @@ GetOutput()
   if [ $ERROR_CODE -ne 0 ]; then
     # Errors found
     echo "ERROR! Failed to get output from deployed SAM application!"
-    echo "ERROR:[$OUTPUT_CMD]"
+    echo "ERROR:[${OUTPUT_CMD[*]}]"
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
