@@ -35,18 +35,6 @@ aws_stack_name: mystack
 # sam_template: .github/template.yml
 sam_template:
 
-###########################################
-# aws_access_key_id for connection to AWS #
-###########################################
-# NOTE: this AWS key needs all access to build and deploy SAM
-aws_access_key_id:
-
-###############################################
-# aws_secret_access_key for connection to AWS #
-###############################################
-# NOTE: this AWS key needs all access to build and deploy SAM
-aws_secret_access_key:
-
 ################################
 # region for connection to AWS #
 ################################
