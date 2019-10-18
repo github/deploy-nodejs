@@ -30,10 +30,10 @@ RUNTIME=''                                  # Runtime for AWS SAM App
 ###################
 GITHUB_SHA="${GITHUB_SHA}"                        # GitHub sha from the commit
 GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"          # Github Event Path
-GITHUB_TOKEN="${ACTIONS_RUNTIME_TOKEN}"           # GitHub token
+GITHUB_TOKEN=''                                   # GitHub token
 GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"            # Github Workspace
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"             # aws_access_key_id to auth
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}"         # aws_secret_access_key to auth
 GITHUB_URL='https://api.github.com'               # GitHub API URL
 
 ##############
@@ -41,8 +41,8 @@ GITHUB_URL='https://api.github.com'               # GitHub API URL
 ##############
 GITHUB_ORG=''           # Name of the GitHub Org
 GITHUB_REPO=''          # Name of the GitHub repo
-USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"           # File with users configurations
-START_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')  # YYYY-MM-DDTHH:MM:SSZ
+USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"   # File with users configurations
+START_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")                      # YYYY-MM-DDTHH:MM:SSZ
 FINISHED_DATE=''        # YYYY-MM-DDTHH:MM:SSZ when complete
 ACTION_CONCLUSTION=''   # success, failure, neutral, cancelled, timed_out, or action_required.
 ACTION_OUTPUT=''        # String to pass back to the user on the output
@@ -57,7 +57,9 @@ DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
 LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
-NVM_SRC='/usr/local/nvm/nvm.sh'           # Source for NVM
+DEBUG=0                                   # Debug=0 OFF | Debug=1 ON
+#NVM_SRC='/usr/local/nvm/nvm.sh'          # Source for NVM
+
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -265,31 +267,6 @@ CreateLocalConfiguration()
     ###################################################
     ERROR_FOUND=1
     ERROR_CAUSE='Failed to create root directory!'
-  fi
-
-  ############################################
-  # Create the local file ~/.aws/credentials #
-  ############################################
-  CREATE_CREDS_CMD=$(echo -e "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> $LOCAL_CRED_FILE )
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! Failed to create file:[$LOCAL_CRED_FILE]!"
-    echo "ERROR:[$CREATE_CREDS_CMD]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE="Failed to create file:[$LOCAL_CRED_FILE]!"
-  else
-    echo "Successfully created:[$LOCAL_CRED_FILE]"
   fi
 
   #######################################
@@ -539,7 +516,7 @@ CreateCheck()
   ##########################################
   # Call to Github to create the Check API #
   ##########################################
-  CREATE_CHECK_CMD=$( curl -sk -X POST \
+  CREATE_CHECK_CMD=$( curl -k --fail -X POST \
     --url "$GITHUB_URL/repos/$GITHUB_ORG/$GITHUB_REPO/check-runs" \
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
@@ -591,20 +568,29 @@ RunDeploy()
   # - Package SAM template
   # - Deploy packaged SAM template
 
-  #################
-  # Build the App #
-  #################
-  BuidApp
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    #################
+    # Build the App #
+    #################
+    BuidApp
+  fi
 
-  ########################
-  # Package the template #
-  ########################
-  PackageTemplate
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    ########################
+    # Package the template #
+    ########################
+    PackageTemplate
+  fi
 
-  #######################
-  # Deploy the template #
-  #######################
-  DeployTemplate
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    #######################
+    # Deploy the template #
+    #######################
+    DeployTemplate
+  fi
 }
 ################################################################################
 #### Function BuidApp ##########################################################
@@ -753,6 +739,12 @@ DeployTemplate()
 #### Function ValidateSourceAndRuntime #########################################
 ValidateSourceAndRuntime()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Validating file:[$AWS_SAM_TEMPLATE] and NodeJS runtime..."
+
   ##############################################
   # Validate the user has the template.yml and #
   # we have the correct runtime set            #
@@ -798,6 +790,7 @@ ValidateSourceAndRuntime()
       ERROR_FOUND=1
       ERROR_CAUSE="Failed to find [Runtime] in:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
     else
+      echo "File found and Runtime variable parsed successfully"
       ###########################
       # Need to set the runtime #
       ###########################
@@ -808,7 +801,7 @@ ValidateSourceAndRuntime()
   ##################################################
   # Need to set the Runtime for the app deployment #
   ##################################################
-  SetRuntime "$RUNTIME"
+  #SetRuntime "$RUNTIME"
 }
 ################################################################################
 #### Function SetRuntime #######################################################
@@ -818,6 +811,12 @@ SetRuntime()
   # Pull in vars #
   ################
   RUNTIME=$1
+
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Setting NodeJS runtime..."
 
   ###########################################
   # Remove the 'NodeJS' and get the version #
@@ -899,7 +898,7 @@ UpdateCheck()
   ###########################
   # Build the finished time #
   ###########################
-  FINISHED_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')
+  FINISHED_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")
 
   ######################################################
   # Set the conclusion to failure if errors were found #
@@ -914,7 +913,7 @@ UpdateCheck()
   ##########################################
   # Call to Github to update the Check API #
   ##########################################
-  UPDATE_CHECK_CMD=$( curl -sk -X PATCH \
+  UPDATE_CHECK_CMD=$( curl -k --fail -X PATCH \
     --url "$GITHUB_URL/repos/$GITHUB_ORG/$GITHUB_REPO/check-runs/$CHECK_ID" \
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
@@ -935,12 +934,21 @@ UpdateCheck()
     exit 1
   else
     echo "Success! Updated Github Checks API"
-    exit 0
   fi
 }
 ################################################################################
 ################################# MAIN #########################################
 ################################################################################
+
+#######################
+# Debug print all env #
+#######################
+if [ $DEBUG -ne 0 ]; then
+  echo "--------------------------------------------"
+  echo "PRINTENV"
+  printenv
+  echo "--------------------------------------------"
+fi
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
@@ -993,7 +1001,8 @@ ValidateSourceAndRuntime
 # Create the check in GitHub to let the
 # user know we are running the deploy action
 # We always want to inform user of the process
-CreateCheck
+# Note: No need to create check as were calling from inside a gitHub Action
+#CreateCheck
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
@@ -1011,4 +1020,16 @@ fi
 # Update the check with the status
 # of the deployment
 # We always want to inform user of the process
-UpdateCheck
+# Note: No need to create check as were calling from inside a gitHub Action
+#UpdateCheck
+
+###############################
+# Exit with proper error code #
+###############################
+if [ $ERROR_FOUND -eq 0 ]; then
+  # Exit with SUCCESS
+  exit 0
+else
+  # Exit with ERROR
+  exit 1
+fi

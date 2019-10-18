@@ -1,7 +1,7 @@
 # deploy-nodejs
 
 This repository is for the **GitHub** Action to deploy a **NodeJS** application to **AWS** Serverless.  
-Developers on **GitHub** can call this Action to take their current **NodeJS** application, and pass basic variables to help deploy
+Developers on **GitHub** can call this Action to take their current **NodeJS** application, and pass basic variables to help deploy thier application.
 
 ## How to use
 
@@ -26,7 +26,7 @@ This file should have the following code:
 ## Deploy GitHub Actions ##
 ###########################
 ###########################
-name: Deploy Action
+name: NodeJS AWS SAM Deploy
 
 #
 # Documentation:
@@ -44,9 +44,10 @@ on: ['push']
 jobs:
   build:
     # Name the Job
-    name: Deploy NodeJS
+    name: NodeJS AWS SAM Deploy
     # Set the agent to run on
     runs-on: ubuntu-latest
+
     ##################
     # Load all steps #
     ##################
@@ -57,13 +58,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@master
 
-      ##################
-      # Run Deployment #
-      ##################
-      - name: Run Deployment
-        uses: github/deploy-nodejs@master
+      #############################
+      # Run NodeJS AWS SAM Deploy #
+      #############################
+      - name: NodeJS AWS SAM Deploy
+        uses: docker://admiralawkbar/aws-nodejs:latest
+        env:
+           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 ...
 ```
+
+**NOTE:** You will need to create the GitHub `Secrets` for:
+- **AWS_ACCESS_KEY**
+  - Valid AWS Access key to authenticate to your AWS Account
+- **AWS_SECRET_KEY**
+  - Valid AWS Access Secret key to authenticate to your AWS Account
 
 ## How to contribute
 
