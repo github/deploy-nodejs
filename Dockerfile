@@ -23,10 +23,10 @@ LABEL com.github.actions.name="NodeJS Deploy AWS Serverless" \
 ##################
 RUN apk add --no-cache \
     bash git musl-dev jq \
-    nodejs npm gcc
+    nodejs npm gcc curl
 
 RUN pip install --upgrade --no-cache-dir \
-    awscli aws-sam-cli yq
+    awscli aws-sam-cli
 
 ####################################
 # Setup AWS CLI Command Completion #
