@@ -26,7 +26,7 @@ RUN apk add --no-cache \
     npm nodejs bash git musl-dev jq gcc curl
 
 RUN pip install --upgrade --no-cache-dir \
-    awscli aws-sam-cli
+    awscli aws-sam-cli yq
 
 # Note: For now, we will use the builtin npm and nodejs
 # ##############################
