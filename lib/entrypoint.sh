@@ -619,7 +619,8 @@ BuidApp()
   #########################
   # Build the application #
   #########################
-  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build )
+  # shellcheck disable=SC2164
+  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build)
 
   #######################
   # Load the error code #
@@ -669,7 +670,8 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION" )
+  # shellcheck disable=SC2164
+  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION")
 
   #######################
   # Load the error code #
@@ -717,7 +719,8 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION" )
+  # shellcheck disable=SC2164
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION")
 
   #######################
   # Load the error code #
@@ -837,7 +840,7 @@ SetRuntime()
     #########################
     # Need to set to latest #
     #########################
-    # shellcheck disable=SC1091
+    # shellcheck disable=SC1090
     NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
 
     #######################
@@ -861,7 +864,7 @@ SetRuntime()
     #########################
     # Running exact version #
     #########################
-    # shellcheck disable=SC1091
+    # shellcheck disable=SC1090
     NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION" ; nvm use "$VERSION")
 
     #######################
