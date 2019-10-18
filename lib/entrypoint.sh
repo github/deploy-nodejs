@@ -16,8 +16,11 @@
 ###########
 # Globals #
 ###########
+<<<<<<< HEAD
 AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
 AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
+=======
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 AWS_REGION=''                               # AWS region to deploy
 S3_BUCKET=''                                # AWS S3 bucket to package and deploy
 AWS_SAM_TEMPLATE=''                         # Path to the SAM template in the user repository
@@ -30,19 +33,27 @@ RUNTIME=''                                  # Runtime for AWS SAM App
 ###################
 # GitHub ENV Vars #
 ###################
-GITHUB_SHA="${GITHUB_SHA}"                # GitHub sha from the commit
-GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"  # Github Event Path
-GITHUB_TOKEN="${ACTIONS_RUNTIME_TOKEN}"   # GitHub token
-GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"    # Github Workspace
-GITHUB_URL='https://api.github.com'       # GitHub API URL
+GITHUB_SHA="${GITHUB_SHA}"                        # GitHub sha from the commit
+GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"          # Github Event Path
+GITHUB_TOKEN=''                                   # GitHub token
+GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"            # Github Workspace
+GITHUB_URL='https://api.github.com'               # GitHub API URL
+
+###################
+# AWS Secret Vars #
+###################
+# shellcheck disable=SC2034
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"             # aws_access_key_id to auth
+# shellcheck disable=SC2034
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}"         # aws_secret_access_key to auth
 
 ##############
 # Built Vars #
 ##############
 GITHUB_ORG=''           # Name of the GitHub Org
 GITHUB_REPO=''          # Name of the GitHub repo
-USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"           # File with users configurations
-START_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')  # YYYY-MM-DDTHH:MM:SSZ
+USER_CONFIG_FILE="$GITHUB_WORKSPACE/.github/aws-config.yml"   # File with users configurations
+START_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")                      # YYYY-MM-DDTHH:MM:SSZ
 FINISHED_DATE=''        # YYYY-MM-DDTHH:MM:SSZ when complete
 ACTION_CONCLUSTION=''   # success, failure, neutral, cancelled, timed_out, or action_required.
 ACTION_OUTPUT=''        # String to pass back to the user on the output
@@ -55,8 +66,13 @@ ERROR_CAUSE=''          # String to pass of error that was detected
 DEFAULT_OUTPUT='json'                     # Default Output format
 DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
-LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
+<<<<<<< HEAD
+=======
+DEBUG=0                                   # Debug=0 OFF | Debug=1 ON
+#NVM_SRC='/usr/local/nvm/nvm.sh'          # Source for NVM
+
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -107,7 +123,11 @@ ValidateConfigurationFile()
   ## Get the s3_bucket ##
   #######################
   #######################
+<<<<<<< HEAD
   S3_BUCKET=$(grep "^s3_bucket:" "$USER_CONFIG_FILE" | awk '{print $2}')
+=======
+  S3_BUCKET=$(yq -r .s3_bucket "$USER_CONFIG_FILE")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -140,7 +160,11 @@ ValidateConfigurationFile()
   ## Get the AWS Stack Name ##
   ############################
   ############################
+<<<<<<< HEAD
   AWS_STACK_NAME=$(grep "^aws_stack_name:" "$USER_CONFIG_FILE" | awk '{print $2}')
+=======
+  AWS_STACK_NAME=$(yq -r .aws_stack_name "$USER_CONFIG_FILE")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -173,7 +197,11 @@ ValidateConfigurationFile()
   ## Get the AWS SAM Template ##
   ##############################
   ##############################
+<<<<<<< HEAD
   AWS_SAM_TEMPLATE=$(grep "^sam_template:" "$USER_CONFIG_FILE" | awk '{print $2}')
+=======
+  AWS_SAM_TEMPLATE=$(yq -r .sam_template "$USER_CONFIG_FILE")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -206,7 +234,11 @@ ValidateConfigurationFile()
   ## Get the region ##
   ####################
   ####################
+<<<<<<< HEAD
   AWS_REGION=$(grep "^region:" "$USER_CONFIG_FILE" | awk '{print $2}')
+=======
+  AWS_REGION=$(yq -r .region "$USER_CONFIG_FILE")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -266,6 +298,7 @@ CreateLocalConfiguration()
     ERROR_CAUSE='Failed to create root directory!'
   fi
 
+<<<<<<< HEAD
   ############################################
   # Create the local file ~/.aws/credentials #
   ############################################
@@ -291,6 +324,8 @@ CreateLocalConfiguration()
     echo "Successfully created:[$LOCAL_CRED_FILE]"
   fi
 
+=======
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
   #######################################
   # Create the local file ~/.aws/config #
   #######################################
@@ -538,7 +573,7 @@ CreateCheck()
   ##########################################
   # Call to Github to create the Check API #
   ##########################################
-  CREATE_CHECK_CMD=$( curl -sk -X POST \
+  CREATE_CHECK_CMD=$( curl -k --fail -X POST \
     --url "$GITHUB_URL/repos/$GITHUB_ORG/$GITHUB_REPO/check-runs" \
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
@@ -590,20 +625,29 @@ RunDeploy()
   # - Package SAM template
   # - Deploy packaged SAM template
 
-  #################
-  # Build the App #
-  #################
-  BuidApp
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    #################
+    # Build the App #
+    #################
+    BuidApp
+  fi
 
-  ########################
-  # Package the template #
-  ########################
-  PackageTemplate
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    ########################
+    # Package the template #
+    ########################
+    PackageTemplate
+  fi
 
-  #######################
-  # Deploy the template #
-  #######################
-  DeployTemplate
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    #######################
+    # Deploy the template #
+    #######################
+    DeployTemplate
+  fi
 }
 ################################################################################
 #### Function BuidApp ##########################################################
@@ -618,7 +662,12 @@ BuidApp()
   #########################
   # Build the application #
   #########################
+<<<<<<< HEAD
   BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build )
+=======
+  # shellcheck disable=SC2164
+  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build)
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -668,7 +717,12 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
+<<<<<<< HEAD
   SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION" )
+=======
+  # shellcheck disable=SC2164
+  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -716,7 +770,12 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
+<<<<<<< HEAD
   SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION" )
+=======
+  # shellcheck disable=SC2164
+  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -749,6 +808,12 @@ DeployTemplate()
 #### Function ValidateSourceAndRuntime #########################################
 ValidateSourceAndRuntime()
 {
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Validating file:[$AWS_SAM_TEMPLATE] and NodeJS runtime..."
+
   ##############################################
   # Validate the user has the template.yml and #
   # we have the correct runtime set            #
@@ -794,6 +859,7 @@ ValidateSourceAndRuntime()
       ERROR_FOUND=1
       ERROR_CAUSE="Failed to find [Runtime] in:[$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE]!"
     else
+      echo "File found and Runtime variable parsed successfully"
       ###########################
       # Need to set the runtime #
       ###########################
@@ -804,7 +870,7 @@ ValidateSourceAndRuntime()
   ##################################################
   # Need to set the Runtime for the app deployment #
   ##################################################
-  SetRuntime "$RUNTIME"
+  #SetRuntime "$RUNTIME"
 }
 ################################################################################
 #### Function SetRuntime #######################################################
@@ -814,6 +880,12 @@ SetRuntime()
   # Pull in vars #
   ################
   RUNTIME=$1
+
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Setting NodeJS runtime..."
 
   ###########################################
   # Remove the 'NodeJS' and get the version #
@@ -836,8 +908,13 @@ SetRuntime()
     #########################
     # Need to set to latest #
     #########################
+<<<<<<< HEAD
     # shellcheck disable=SC1091
     NVM_INSTALL_CMD=$(nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
+=======
+    # shellcheck disable=SC1090
+    NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
     #######################
     # Load the error code #
@@ -860,8 +937,13 @@ SetRuntime()
     #########################
     # Running exact version #
     #########################
+<<<<<<< HEAD
     # shellcheck disable=SC1091
     NVM_INSTALL_CMD=$(nvm install "$VERSION" ; nvm use "$VERSION")
+=======
+    # shellcheck disable=SC1090
+    NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION" ; nvm use "$VERSION")
+>>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
     #######################
     # Load the error code #
@@ -895,7 +977,7 @@ UpdateCheck()
   ###########################
   # Build the finished time #
   ###########################
-  FINISHED_DATE=$(date --utc "+%FT%T.%N" | sed -r 's/[[:digit:]]{7}$/Z/')
+  FINISHED_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")
 
   ######################################################
   # Set the conclusion to failure if errors were found #
@@ -910,7 +992,7 @@ UpdateCheck()
   ##########################################
   # Call to Github to update the Check API #
   ##########################################
-  UPDATE_CHECK_CMD=$( curl -sk -X PATCH \
+  UPDATE_CHECK_CMD=$( curl -k --fail -X PATCH \
     --url "$GITHUB_URL/repos/$GITHUB_ORG/$GITHUB_REPO/check-runs/$CHECK_ID" \
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
@@ -931,12 +1013,21 @@ UpdateCheck()
     exit 1
   else
     echo "Success! Updated Github Checks API"
-    exit 0
   fi
 }
 ################################################################################
 ################################# MAIN #########################################
 ################################################################################
+
+#######################
+# Debug print all env #
+#######################
+if [ $DEBUG -ne 0 ]; then
+  echo "--------------------------------------------"
+  echo "PRINTENV"
+  printenv
+  echo "--------------------------------------------"
+fi
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
@@ -989,7 +1080,8 @@ ValidateSourceAndRuntime
 # Create the check in GitHub to let the
 # user know we are running the deploy action
 # We always want to inform user of the process
-CreateCheck
+# Note: No need to create check as were calling from inside a gitHub Action
+#CreateCheck
 
 # Go into loop if no errors detected
 if [ $ERROR_FOUND -eq 0 ]; then
@@ -1007,4 +1099,16 @@ fi
 # Update the check with the status
 # of the deployment
 # We always want to inform user of the process
-UpdateCheck
+# Note: No need to create check as were calling from inside a gitHub Action
+#UpdateCheck
+
+###############################
+# Exit with proper error code #
+###############################
+if [ $ERROR_FOUND -eq 0 ]; then
+  # Exit with SUCCESS
+  exit 0
+else
+  # Exit with ERROR
+  exit 1
+fi
