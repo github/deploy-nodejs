@@ -596,6 +596,14 @@ RunDeploy()
     #######################
     DeployTemplate
   fi
+
+  # Go into loop if no errors detected
+  if [ $ERROR_FOUND -eq 0 ]; then
+    #######################
+    # Deploy the template #
+    #######################
+    GetOutput
+  fi
 }
 ################################################################################
 #### Function BuidApp ##########################################################
@@ -728,6 +736,7 @@ DeployTemplate()
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
+    ERROR_FOUND=1
     ACTION_CONCLUSTION='failure'
     ACTION_OUTPUT="Failed to deploy SAM App"
   else
@@ -738,6 +747,56 @@ DeployTemplate()
     #########################################
     ACTION_CONCLUSTION='success'
     ACTION_OUTPUT="Successfully Deployed SAM App"
+  fi
+}
+################################################################################
+#### Function GetOutput ########################################################
+GetOutput()
+{
+  # Need to get the generated output from the stack
+  # to display back to the user for consumption
+
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Gathering Output from deployed SAM application..."
+
+  ###########################
+  # Get the output from AWS #
+  ###########################
+  IFS=$'\n' # Set IFS to newline
+  OUTPUT_CMD=($(aws cloudformation describe-stacks --stack-name "$AWS_STACK_NAME" --query "Stacks[0].Outputs[*]" --region "$AWS_REGION"))
+
+  #######################
+  # Load the error code #
+  #######################
+  ERROR_CODE=$?
+
+  ##############################
+  # Check the shell for errors #
+  ##############################
+  if [ $ERROR_CODE -ne 0 ]; then
+    # Errors found
+    echo "ERROR! Failed to get output from deployed SAM application!"
+    echo "ERROR:[${OUTPUT_CMD[*]}]"
+    #########################################
+    # Need to update the ACTION_CONCLUSTION #
+    #########################################
+    ERROR_FOUND=1
+    ACTION_CONCLUSTION='failure'
+    ACTION_OUTPUT="Failed to get output from deployed SAM application"
+  else
+    # Success
+    ################################################
+    # Itterate through all lines returned from AWS #
+    ################################################
+    echo "Output from deployed AWS SAM Application:[$AWS_STACK_NAME]:"
+    for LINE in "${OUTPUT_CMD[@]}"
+    do
+      # Print the output to the logfile
+      echo "$LINE"
+    done
   fi
 }
 ################################################################################
