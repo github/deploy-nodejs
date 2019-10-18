@@ -736,6 +736,7 @@ DeployTemplate()
     #########################################
     # Need to update the ACTION_CONCLUSTION #
     #########################################
+    ERROR_FOUND=1
     ACTION_CONCLUSTION='failure'
     ACTION_OUTPUT="Failed to deploy SAM App"
   else
@@ -755,10 +756,17 @@ GetOutput()
   # Need to get the generated output from the stack
   # to display back to the user for consumption
 
+  ##########
+  # Prints #
+  ##########
+  echo "--------------------------------------------"
+  echo "Gathering Output from deployed SAM application..."
+
   ###########################
   # Get the output from AWS #
   ###########################
-  OUTPUT_CMD=($(aws cloudformation --region "$REGION" describe-stacks --stack-name "$AWS_STACK_NAME" --query "Stacks[0].Outputs[*]"))
+  IFS=$'\n' # Set IFS to newline
+  OUTPUT_CMD=($(aws cloudformation describe-stacks --stack-name "$AWS_STACK_NAME" --query "Stacks[0].Outputs[*]" --region "$AWS_REGION"))
 
   #######################
   # Load the error code #
@@ -783,6 +791,7 @@ GetOutput()
     ################################################
     # Itterate through all lines returned from AWS #
     ################################################
+    echo "Output from deployed AWS SAM Application:[$AWS_STACK_NAME]:"
     for LINE in "${OUTPUT_CMD[@]}"
     do
       # Print the output to the logfile
