@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 ################################################################################
 ################################################################################
@@ -16,11 +16,6 @@
 ###########
 # Globals #
 ###########
-<<<<<<< HEAD
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
-=======
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 AWS_REGION=''                               # AWS region to deploy
 S3_BUCKET=''                                # AWS S3 bucket to package and deploy
 AWS_SAM_TEMPLATE=''                         # Path to the SAM template in the user repository
@@ -67,12 +62,9 @@ DEFAULT_OUTPUT='json'                     # Default Output format
 DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
-<<<<<<< HEAD
-=======
 DEBUG=0                                   # Debug=0 OFF | Debug=1 ON
 #NVM_SRC='/usr/local/nvm/nvm.sh'          # Source for NVM
 
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -123,11 +115,7 @@ ValidateConfigurationFile()
   ## Get the s3_bucket ##
   #######################
   #######################
-<<<<<<< HEAD
-  S3_BUCKET=$(grep "^s3_bucket:" "$USER_CONFIG_FILE" | awk '{print $2}')
-=======
   S3_BUCKET=$(yq -r .s3_bucket "$USER_CONFIG_FILE")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -160,11 +148,7 @@ ValidateConfigurationFile()
   ## Get the AWS Stack Name ##
   ############################
   ############################
-<<<<<<< HEAD
-  AWS_STACK_NAME=$(grep "^aws_stack_name:" "$USER_CONFIG_FILE" | awk '{print $2}')
-=======
   AWS_STACK_NAME=$(yq -r .aws_stack_name "$USER_CONFIG_FILE")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -197,11 +181,7 @@ ValidateConfigurationFile()
   ## Get the AWS SAM Template ##
   ##############################
   ##############################
-<<<<<<< HEAD
-  AWS_SAM_TEMPLATE=$(grep "^sam_template:" "$USER_CONFIG_FILE" | awk '{print $2}')
-=======
   AWS_SAM_TEMPLATE=$(yq -r .sam_template "$USER_CONFIG_FILE")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -234,11 +214,7 @@ ValidateConfigurationFile()
   ## Get the region ##
   ####################
   ####################
-<<<<<<< HEAD
-  AWS_REGION=$(grep "^region:" "$USER_CONFIG_FILE" | awk '{print $2}')
-=======
   AWS_REGION=$(yq -r .region "$USER_CONFIG_FILE")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -298,34 +274,6 @@ CreateLocalConfiguration()
     ERROR_CAUSE='Failed to create root directory!'
   fi
 
-<<<<<<< HEAD
-  ############################################
-  # Create the local file ~/.aws/credentials #
-  ############################################
-  CREATE_CREDS_CMD=$(echo -e "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> $LOCAL_CRED_FILE )
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ]; then
-    echo "ERROR! Failed to create file:[$LOCAL_CRED_FILE]!"
-    echo "ERROR:[$CREATE_CREDS_CMD]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE="Failed to create file:[$LOCAL_CRED_FILE]!"
-  else
-    echo "Successfully created:[$LOCAL_CRED_FILE]"
-  fi
-
-=======
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
   #######################################
   # Create the local file ~/.aws/config #
   #######################################
@@ -376,20 +324,20 @@ GetGitHubVars()
     echo "Successfully found:[GITHUB_SHA]"
   fi
 
-  ############################
-  # Validate we have a value #
-  ############################
-  if [ -z "$GITHUB_TOKEN" ]; then
-    echo "ERROR! Failed to get [GITHUB_TOKEN]!"
-    echo "ERROR:[$GITHUB_TOKEN]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get [GITHUB_TOKEN]!'
-  else
-    echo "Successfully found:[GITHUB_TOKEN]"
-  fi
+  # ############################
+  # # Validate we have a value #
+  # ############################
+  # if [ -z "$GITHUB_TOKEN" ]; then
+  #   echo "ERROR! Failed to get [GITHUB_TOKEN]!"
+  #   echo "ERROR:[$GITHUB_TOKEN]"
+  #   ###################################################
+  #   # Set the ERROR_FOUND flag to 1 to drop out build #
+  #   ###################################################
+  #   ERROR_FOUND=1
+  #   ERROR_CAUSE='Failed to get [GITHUB_TOKEN]!'
+  # else
+  #   echo "Successfully found:[GITHUB_TOKEN]"
+  # fi
 
   ############################
   # Validate we have a value #
@@ -662,12 +610,8 @@ BuidApp()
   #########################
   # Build the application #
   #########################
-<<<<<<< HEAD
-  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build )
-=======
   # shellcheck disable=SC2164
   BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build)
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -717,12 +661,8 @@ PackageTemplate()
   ############################
   # Package the SAM template #
   ############################
-<<<<<<< HEAD
-  SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION" )
-=======
   # shellcheck disable=SC2164
   SAM_PACKAGE_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" package --template-file "$GITHUB_WORKSPACE/$AWS_SAM_TEMPLATE" --s3-bucket "$S3_BUCKET" --output-template-file "$AWS_PACKAGED" --region "$AWS_REGION")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -770,12 +710,8 @@ DeployTemplate()
   ###########################
   # Deploy the SAM template #
   ###########################
-<<<<<<< HEAD
-  SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION" )
-=======
   # shellcheck disable=SC2164
   SAM_DEPLOY_CMD=$(cd "$GITHUB_WORKSPACE"; "$SAM_CMD" deploy --template-file "$GITHUB_WORKSPACE/$AWS_PACKAGED" --stack-name "$AWS_STACK_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
   #######################
   # Load the error code #
@@ -908,13 +844,8 @@ SetRuntime()
     #########################
     # Need to set to latest #
     #########################
-<<<<<<< HEAD
-    # shellcheck disable=SC1091
-    NVM_INSTALL_CMD=$(nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
-=======
     # shellcheck disable=SC1090
     NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
     #######################
     # Load the error code #
@@ -937,13 +868,8 @@ SetRuntime()
     #########################
     # Running exact version #
     #########################
-<<<<<<< HEAD
-    # shellcheck disable=SC1091
-    NVM_INSTALL_CMD=$(nvm install "$VERSION" ; nvm use "$VERSION")
-=======
     # shellcheck disable=SC1090
     NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION" ; nvm use "$VERSION")
->>>>>>> 026612bf3664fad8fba5d11311860d500187c42f
 
     #######################
     # Load the error code #
