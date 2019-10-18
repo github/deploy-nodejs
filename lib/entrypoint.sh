@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 ################################################################################
 ################################################################################
@@ -16,15 +16,15 @@
 ###########
 # Globals #
 ###########
-AWS_ACCESS_KEY_ID=''                        # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY=''                    # aws_secret_access_key to auth
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
 AWS_REGION=''                               # AWS region to deploy
 S3_BUCKET=''                                # AWS S3 bucket to package and deploy
 AWS_SAM_TEMPLATE=''                         # Path to the SAM template in the user repository
 CHECK_NAME='GitHub AWS Deploy Serverless'   # Name of the GitHub Action
 CHECK_ID=''                                 # GitHub Check ID that is created
 AWS_STACK_NAME=''                           # AWS Cloud Formation Stack name of SAM
-SAM_CMD='/root/.linuxbrew/Homebrew/bin/sam' # Path to AWS SAM Exec
+SAM_CMD='sam'                               # Path to AWS SAM Exec
 RUNTIME=''                                  # Runtime for AWS SAM App
 
 ###################
@@ -57,7 +57,7 @@ DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
 LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
-NVM_SOURCE='/usr/local/nvm/nvm.sh'        # NVM source location
+NVM_SRC='/usr/local/nvm/nvm.sh'           # Source for NVM
 
 ######################################################
 # Variables we need to set in the ~/.aws/credentials #
@@ -103,78 +103,12 @@ ValidateConfigurationFile()
   # Map the variables to local variables #
   ########################################
 
-  ###############################
-  ###############################
-  ## Get the aws_access_key_id ##
-  ###############################
-  ###############################
-  AWS_ACCESS_KEY_ID=$(yq -r aws_access_key_id "$USER_CONFIG_FILE" )
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ] || [ "$AWS_ACCESS_KEY_ID" == "null" ]; then
-    echo "ERROR! Failed to get [aws_access_key_id]!"
-    echo "ERROR:[$AWS_ACCESS_KEY_ID]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE="Failed to get [aws_access_key_id]"
-  else
-    echo "Successfully found:[aws_access_key_id]"
-  fi
-
-  ############################################
-  # Clean any whitespace that may be entered #
-  ############################################
-  AWS_ACCESS_KEY_ID_NO_WHITESPACE="$(echo "${AWS_ACCESS_KEY_ID}" | tr -d '[:space:]')"
-  AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_NO_WHITESPACE
-
-  ###################################
-  ###################################
-  ## Get the AWS_SECRET_ACCESS_KEY ##
-  ###################################
-  ###################################
-  AWS_SECRET_ACCESS_KEY=$(yq -r .aws_secret_access_key "$USER_CONFIG_FILE" )
-
-  #######################
-  # Load the error code #
-  #######################
-  ERROR_CODE=$?
-
-  ##############################
-  # Check the shell for errors #
-  ##############################
-  if [ $ERROR_CODE -ne 0 ] || [ "$AWS_SECRET_ACCESS_KEY" == "null" ]; then
-    echo "ERROR! Failed to get [aws_secret_access_key]!"
-    echo "ERROR:[$AWS_SECRET_ACCESS_KEY]"
-    ###################################################
-    # Set the ERROR_FOUND flag to 1 to drop out build #
-    ###################################################
-    ERROR_FOUND=1
-    ERROR_CAUSE='Failed to get [aws_secret_access_key]!'
-  else
-    echo "Successfully found:[aws_secret_access_key]"
-  fi
-
-  ############################################
-  # Clean any whitespace that may be entered #
-  ############################################
-  AWS_SECRET_ACCESS_KEY_NO_WHITESPACE="$(echo "${AWS_SECRET_ACCESS_KEY}" | tr -d '[:space:]')"
-  AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_NO_WHITESPACE
-
   #######################
   #######################
   ## Get the s3_bucket ##
   #######################
   #######################
-  S3_BUCKET=$(yq -r .s3_bucket "$USER_CONFIG_FILE" )
+  S3_BUCKET=$(yq -r .s3_bucket "$USER_CONFIG_FILE")
 
   #######################
   # Load the error code #
@@ -207,7 +141,7 @@ ValidateConfigurationFile()
   ## Get the AWS Stack Name ##
   ############################
   ############################
-  AWS_STACK_NAME=$(yq -r .aws_stack_name "$USER_CONFIG_FILE" )
+  AWS_STACK_NAME=$(yq -r .aws_stack_name "$USER_CONFIG_FILE")
 
   #######################
   # Load the error code #
@@ -240,7 +174,7 @@ ValidateConfigurationFile()
   ## Get the AWS SAM Template ##
   ##############################
   ##############################
-  AWS_SAM_TEMPLATE=$(yq -r .sam_template "$USER_CONFIG_FILE" )
+  AWS_SAM_TEMPLATE=$(yq -r .sam_template "$USER_CONFIG_FILE")
 
   #######################
   # Load the error code #
@@ -273,7 +207,7 @@ ValidateConfigurationFile()
   ## Get the region ##
   ####################
   ####################
-  AWS_REGION=$(yq -r .region "$USER_CONFIG_FILE" )
+  AWS_REGION=$(yq -r .region "$USER_CONFIG_FILE")
 
   #######################
   # Load the error code #
@@ -313,7 +247,7 @@ CreateLocalConfiguration()
   ########################################
   # Create the directory if not existant #
   ########################################
-  MK_DIR_CMD=$(mkdir ~/.aws )
+  MK_DIR_CMD=$(mkdir /root/.aws)
 
   #######################
   # Load the error code #
@@ -610,7 +544,8 @@ CreateCheck()
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
     -H 'content-type: application/json' \
-    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"in_progress\", \"started_at\": \"$START_DATE\" }")
+    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"in_progress\", \"started_at\": \"$START_DATE\" }" \
+    )
 
   #######################
   # Load the error code #
@@ -903,7 +838,7 @@ SetRuntime()
     # Need to set to latest #
     #########################
     # shellcheck disable=SC1091
-    NVM_INSTALL_CMD=$(. "$NVM_SOURCE"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR" )
+    NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION_MAJOR" ; nvm use "$VERSION_MAJOR")
 
     #######################
     # Load the error code #
@@ -927,7 +862,7 @@ SetRuntime()
     # Running exact version #
     #########################
     # shellcheck disable=SC1091
-    NVM_INSTALL_CMD=$(. "$NVM_SOURCE" ; nvm install "$VERSION" ; nvm use "$VERSION" )
+    NVM_INSTALL_CMD=$(. "$NVM_SRC"; nvm install "$VERSION" ; nvm use "$VERSION")
 
     #######################
     # Load the error code #
@@ -981,8 +916,7 @@ UpdateCheck()
     -H 'accept: application/vnd.github.antiope-preview+json' \
     -H "authorization: Bearer $GITHUB_TOKEN" \
     -H 'content-type: application/json' \
-    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"completed\", \"completed_at\": \"$FINISHED_DATE\" , \"conclusion\": \"$ACTION_CONCLUSTION\" , \"output\": { \"title\": \"AWS SAM Deploy Summary\" , \"text\": \"$ACTION_OUTPUT\"} }" \
-    )
+    --data "{ \"name\": \"$CHECK_NAME\", \"head_sha\": \"$GITHUB_SHA\", \"status\": \"completed\", \"completed_at\": \"$FINISHED_DATE\" , \"conclusion\": \"$ACTION_CONCLUSTION\" , \"output\": { \"title\": \"AWS SAM Deploy Summary\" , \"text\": \"$ACTION_OUTPUT\"} }")
 
   #######################
   # Load the error code #
