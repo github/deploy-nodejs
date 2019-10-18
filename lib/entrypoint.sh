@@ -32,9 +32,15 @@ GITHUB_SHA="${GITHUB_SHA}"                        # GitHub sha from the commit
 GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"          # Github Event Path
 GITHUB_TOKEN=''                                   # GitHub token
 GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"            # Github Workspace
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"             # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}"         # aws_secret_access_key to auth
 GITHUB_URL='https://api.github.com'               # GitHub API URL
+
+###################
+# AWS Secret Vars #
+###################
+# shellcheck disable=SC2034
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"             # aws_access_key_id to auth
+# shellcheck disable=SC2034
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}"         # aws_secret_access_key to auth
 
 ##############
 # Built Vars #
@@ -55,7 +61,6 @@ ERROR_CAUSE=''          # String to pass of error that was detected
 DEFAULT_OUTPUT='json'                     # Default Output format
 DEFAULT_REGION='us-west-2'                # Default region to deploy
 LOCAL_CONFIG_FILE='/root/.aws/config'     # AWS Config file
-LOCAL_CRED_FILE='/root/.aws/credentials'  # AWS Credential file
 AWS_PACKAGED='packaged.yml'               # Created SAM Package
 DEBUG=0                                   # Debug=0 OFF | Debug=1 ON
 #NVM_SRC='/usr/local/nvm/nvm.sh'          # Source for NVM
