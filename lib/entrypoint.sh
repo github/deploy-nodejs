@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 ################################################################################
 ################################################################################
@@ -16,8 +16,6 @@
 ###########
 # Globals #
 ###########
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
 AWS_REGION=''                               # AWS region to deploy
 S3_BUCKET=''                                # AWS S3 bucket to package and deploy
 AWS_SAM_TEMPLATE=''                         # Path to the SAM template in the user repository
@@ -30,11 +28,13 @@ RUNTIME=''                                  # Runtime for AWS SAM App
 ###################
 # GitHub ENV Vars #
 ###################
-GITHUB_SHA="${GITHUB_SHA}"                # GitHub sha from the commit
-GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"  # Github Event Path
-GITHUB_TOKEN="${ACTIONS_RUNTIME_TOKEN}"   # GitHub token
-GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"    # Github Workspace
-GITHUB_URL='https://api.github.com'       # GitHub API URL
+GITHUB_SHA="${GITHUB_SHA}"                        # GitHub sha from the commit
+GITHUB_EVENT_PATH="${GITHUB_EVENT_PATH}"          # Github Event Path
+GITHUB_TOKEN="${ACTIONS_RUNTIME_TOKEN}"           # GitHub token
+GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"            # Github Workspace
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"          # aws_access_key_id to auth
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"  # aws_secret_access_key to auth
+GITHUB_URL='https://api.github.com'               # GitHub API URL
 
 ##############
 # Built Vars #
