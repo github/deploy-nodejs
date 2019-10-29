@@ -619,7 +619,7 @@ BuidApp()
   # Build the application #
   #########################
   # shellcheck disable=SC2164
-  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build)
+  BUILD_CMD=$(cd "$GITHUB_WORKSPACE" ; "$SAM_CMD" build -t "$AWS_SAM_TEMPLATE")
 
   #######################
   # Load the error code #
