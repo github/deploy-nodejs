@@ -1,7 +1,7 @@
 # deploy-nodejs
 
 This repository is for the **GitHub** Action to deploy a **NodeJS** application to **AWS** Serverless.  
-Developers on **GitHub** can call this Action to take their current **NodeJS** application, and pass basic variables to help deploy thier application.
+Developers on **GitHub** can call this Action to take their current **NodeJS** application, and pass basic variables to help deploy their application.
 
 ## How to use
 
