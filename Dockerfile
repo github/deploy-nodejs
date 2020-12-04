@@ -7,7 +7,7 @@
 ##################
 # Get base image #
 ##################
-FROM python:2-alpine
+FROM python:2.7-alpine
 
 #########################################
 # Label the instance and set maintainer #
