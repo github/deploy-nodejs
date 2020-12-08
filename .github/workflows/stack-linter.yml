@@ -1,10 +1,10 @@
 ---
-#############################
-#############################
-## CI/CT/CD GitHub Actions ##
-#############################
-#############################
-name: Source Linter
+########################
+########################
+## Source Code Linter ##
+########################
+########################
+name: Source Code Linter
 
 #
 # Documentation:
@@ -14,7 +14,11 @@ name: Source Linter
 #############################
 # Start the job on all push #
 #############################
-on: ['push']
+# Dont need to run on push to master
+on:
+  push:
+    branches-ignore:
+      - 'master'
 
 ###############
 # Set the Job #
@@ -22,52 +26,27 @@ on: ['push']
 jobs:
   build:
     # Name the Job
-    name: Source linter
+    name: Source Code Linter
+
     # Set the agent to run on
     runs-on: ubuntu-latest
+
     ##################
     # Load all steps #
     ##################
     steps:
+
       ##########################
       # Checkout the code base #
       ##########################
       - name: Checkout Code
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
 
-      #####################
-      # Install Ruby Libs #
-      #####################
-      - name: Set up Ruby
-        uses: actions/setup-ruby@master
-        with:
-          ruby-version: 2.6.x
-
-      ####################
-      # Install NPM Libs #
-      ####################
-      - name: Setup NPM
-        uses: actions/setup-node@master
-        with:
-          node-version: 10.x
-
-      #################################
-      # Install all base dependancies #
-      #################################
-      - name: Install Dependencies
-        shell: bash
-        run: ./.automation/install-deps.sh
-
-      #############################################
-      # Run the markup and markdown linter script #
-      #############################################
-      - name: Run Markup and Markdown Linter
-        shell: bash
-        run: ./.automation/markup-markdown-linter.sh
-
-      ###################################
-      # Run the scripting linter script #
-      ###################################
-      - name: Run Scripting Linter
-        shell: bash
-        run: ./.automation/scripting-linter.sh
+      ################################
+      # Run Linter against code base #
+      ################################
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
