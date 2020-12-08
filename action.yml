@@ -1,0 +1,9 @@
+name: 'Deploy-NodeJS'
+author: 'GitHub'
+description: 'Install NodeJS on your GitHub Action runner.'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+branding:
+  icon: 'check-square'
+  color: 'blue'
